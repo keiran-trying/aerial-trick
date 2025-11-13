@@ -1,0 +1,207 @@
+'use client'
+
+import { useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { Heart, Clock, MessageCircle } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { cn, difficultyColors, formatDuration } from '@/lib/utils'
+import type { Database } from '@/lib/types/database.types'
+
+type Tutorial = Database['public']['Tables']['tutorials']['Row']
+
+interface TutorialCardProps {
+  tutorial: Tutorial
+  featured?: boolean
+  isFavorite?: boolean
+  compact?: boolean
+}
+
+export function TutorialCard({ tutorial, featured = false, isFavorite: initialFavorite = false, compact = false }: TutorialCardProps) {
+  const [isFavorite, setIsFavorite] = useState(initialFavorite)
+  const [isToggling, setIsToggling] = useState(false)
+  const supabase = createClient()
+
+  const handleFavoriteToggle = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (isToggling) return
+
+    setIsToggling(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        // Redirect to login
+        window.location.href = '/auth/login'
+        return
+      }
+
+      if (isFavorite) {
+        // Remove from favorites
+        await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('tutorial_id', tutorial.id)
+        setIsFavorite(false)
+      } else {
+        // Add to favorites
+        await supabase
+          .from('favorites')
+          .insert({ user_id: user.id, tutorial_id: tutorial.id })
+        setIsFavorite(true)
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    } finally {
+      setIsToggling(false)
+    }
+  }
+
+  if (compact) {
+    return (
+      <Link href={`/tutorial/${tutorial.id}`}>
+        <div className="relative rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all">
+          {/* Compact Thumbnail */}
+          <div className="relative aspect-[9/16] bg-gradient-to-br from-gray-200 to-gray-300">
+            {tutorial.thumbnail_url ? (
+              <Image
+                src={tutorial.thumbnail_url}
+                alt={tutorial.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 50vw, 224px"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                <span className="text-3xl">🧘‍♀️</span>
+              </div>
+            )}
+            
+            {/* Difficulty Badge - Smaller */}
+            <div className="absolute top-2 left-2">
+              <span className={cn(
+                'px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md uppercase',
+                difficultyColors[tutorial.difficulty]
+              )}>
+                {tutorial.difficulty[0]}
+              </span>
+            </div>
+
+            {/* Favorite Button - Smaller */}
+            <button
+              onClick={handleFavoriteToggle}
+              className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur rounded-full shadow-md hover:bg-white transition-colors"
+              disabled={isToggling}
+            >
+              <Heart
+                className={cn(
+                  'w-3.5 h-3.5 transition-all',
+                  isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                )}
+              />
+            </button>
+
+            {/* Duration Badge */}
+            {tutorial.duration_minutes && (
+              <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/70 rounded text-white text-[10px] font-semibold">
+                {formatDuration(tutorial.duration_minutes)}
+              </div>
+            )}
+          </div>
+
+          {/* Compact Content */}
+          <div className="p-2 bg-white">
+            <h3 className="font-semibold text-gray-900 text-xs line-clamp-2 leading-tight">
+              {tutorial.title}
+            </h3>
+          </div>
+        </div>
+      </Link>
+    )
+  }
+
+  return (
+    <Link href={`/tutorial/${tutorial.id}`}>
+      <div className={cn(
+        'relative rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]',
+        featured ? 'bg-white/95 backdrop-blur' : 'bg-white'
+      )}>
+        {/* Thumbnail - Vertical/Portrait */}
+        <div className="relative aspect-[9/16] bg-gradient-to-br from-gray-200 to-gray-300">
+          {tutorial.thumbnail_url ? (
+            <Image
+              src={tutorial.thumbnail_url}
+              alt={tutorial.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 448px"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+              <span className="text-6xl">🧘‍♀️</span>
+            </div>
+          )}
+          
+          {/* Difficulty Badge */}
+          <div className="absolute top-3 left-3">
+            <span className={cn(
+              'px-3 py-1 rounded-full text-xs font-semibold text-white shadow-md',
+              difficultyColors[tutorial.difficulty]
+            )}>
+              {tutorial.difficulty.toUpperCase()}
+            </span>
+          </div>
+
+          {/* Favorite Button */}
+          <button
+            onClick={handleFavoriteToggle}
+            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur rounded-full shadow-md hover:bg-white transition-colors"
+            disabled={isToggling}
+          >
+            <Heart
+              className={cn(
+                'w-5 h-5 transition-all',
+                isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'
+              )}
+            />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+            {tutorial.title}
+          </h3>
+          
+          {tutorial.description && (
+            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+              {tutorial.description}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between text-sm text-gray-500">
+            <div className="flex items-center gap-4">
+              {tutorial.duration_minutes && (
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  <span>{formatDuration(tutorial.duration_minutes)}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1">
+                <MessageCircle className="w-4 h-4" />
+                <span>Comments</span>
+              </div>
+            </div>
+            
+            {tutorial.collection && (
+              <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                {tutorial.collection}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
