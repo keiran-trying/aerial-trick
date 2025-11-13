@@ -18,7 +18,29 @@ export function DailyTrick() {
       try {
         const today = new Date().toISOString().split('T')[0]
         
-        // Check if daily trick exists for today
+        // First try to call the auto-create function if it exists
+        try {
+          const { data: autoCreated } = await supabase.rpc('get_or_create_daily_trick')
+          if (autoCreated && autoCreated.length > 0) {
+            // Fetch the tutorial
+            const { data: tutorial } = await supabase
+              .from('tutorials')
+              .select('*')
+              .eq('id', autoCreated[0].tutorial_id)
+              .single()
+            
+            if (tutorial) {
+              setDailyTutorial(tutorial)
+              setLoading(false)
+              return
+            }
+          }
+        } catch (rpcError) {
+          // Function might not exist, fall back to regular query
+          console.log('Auto-create function not available, using fallback')
+        }
+        
+        // Fallback: Check if daily trick exists for today
         const { data: dailyTrickData } = await supabase
           .from('daily_trick')
           .select('tutorial_id')
@@ -35,8 +57,7 @@ export function DailyTrick() {
           
           setDailyTutorial(tutorial)
         } else {
-          // No daily trick set yet - could be set by cron job
-          // For now, just show nothing
+          // No daily trick set yet
           setDailyTutorial(null)
         }
       } catch (error) {
