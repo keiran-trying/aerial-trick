@@ -200,34 +200,52 @@ export function AdminDashboardSimple() {
 
         const videoExt = videoFile.name.split('.').pop()
         const videoFileName = `${Date.now()}-${title.replace(/\s+/g, '-')}.${videoExt}`
-        const { data: videoData, error: videoError } = await supabase.storage
-          .from('tutorials')
-          .upload(videoFileName, videoFile)
+        
+        try {
+          const { data: videoData, error: videoError } = await supabase.storage
+            .from('tutorials')
+            .upload(videoFileName, videoFile)
 
-        if (videoError) throw videoError
+          if (videoError) {
+            console.error('Video upload error:', videoError)
+            throw new Error(`Failed to upload video: ${videoError.message}. Please check storage permissions in Supabase.`)
+          }
 
-        const { data: videoUrlData } = supabase.storage
-          .from('tutorials')
-          .getPublicUrl(videoData.path)
+          const { data: videoUrlData } = supabase.storage
+            .from('tutorials')
+            .getPublicUrl(videoData.path)
 
-        videoUrl = videoUrlData.publicUrl
+          videoUrl = videoUrlData.publicUrl
+        } catch (uploadError: any) {
+          console.error('Video upload error:', uploadError)
+          throw new Error(`Video upload failed: ${uploadError.message || 'Please check your storage bucket permissions in Supabase.'}`)
+        }
       }
 
       // Upload thumbnail or generate from video
       if (thumbnailFile) {
         const thumbExt = thumbnailFile.name.split('.').pop()
         const thumbFileName = `thumb-${Date.now()}-${title.replace(/\s+/g, '-')}.${thumbExt}`
-        const { data: thumbData, error: thumbError } = await supabase.storage
-          .from('tutorials')
-          .upload(thumbFileName, thumbnailFile)
+        
+        try {
+          const { data: thumbData, error: thumbError } = await supabase.storage
+            .from('tutorials')
+            .upload(thumbFileName, thumbnailFile)
 
-        if (thumbError) throw thumbError
+          if (thumbError) {
+            console.error('Thumbnail upload error:', thumbError)
+            throw new Error(`Failed to upload thumbnail: ${thumbError.message}`)
+          }
 
-        const { data: thumbUrlData } = supabase.storage
-          .from('tutorials')
-          .getPublicUrl(thumbData.path)
+          const { data: thumbUrlData } = supabase.storage
+            .from('tutorials')
+            .getPublicUrl(thumbData.path)
 
-        thumbnailUrl = thumbUrlData.publicUrl
+          thumbnailUrl = thumbUrlData.publicUrl
+        } catch (uploadError: any) {
+          console.error('Thumbnail upload error:', uploadError)
+          throw new Error(`Thumbnail upload failed: ${uploadError.message || 'Please check storage permissions.'}`)
+        }
       } else if (videoFile && !editingId) {
         // Only auto-generate thumbnail for NEW tutorials
         try {
