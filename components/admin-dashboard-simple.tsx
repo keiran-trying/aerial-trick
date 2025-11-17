@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Edit2, Trash2, Upload, X } from 'lucide-react'
+import { Plus, Edit2, Trash2, Upload, X, Search } from 'lucide-react'
 import { difficultyColors } from '@/lib/utils'
 import { AdminDailyTrick } from './admin-daily-trick'
 import type { Database } from '@/lib/types/database.types'
@@ -21,10 +21,14 @@ export function AdminDashboardSimple() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('easy')
-  const [difficultyStars, setDifficultyStars] = useState<number>(1) // Sub-level difficulty (1-3)
+  const [difficultyStars, setDifficultyStars] = useState<number>(1) // Sub-level difficulty (1-2)
   const [collectionsInput, setCollectionsInput] = useState('') // Comma-separated collections
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
+  
+  // Filter and search state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterDifficulty, setFilterDifficulty] = useState<DifficultyLevel | 'all'>('all')
   
   const supabase = createClient()
 
@@ -555,60 +559,167 @@ export function AdminDashboardSimple() {
       )}
 
       {/* Tutorials List */}
-      {!showForm && (
-        <div className="space-y-3">
-          <h3 className="text-lg font-bold text-gray-900">All Tutorials ({tutorials.length})</h3>
-          {tutorials.map((tutorial) => (
-            <div key={tutorial.id} className="bg-white rounded-xl p-4 shadow-md">
-              <div className="flex gap-3">
-                {tutorial.thumbnail_url ? (
-                  <img
-                    src={tutorial.thumbnail_url}
-                    alt={tutorial.title}
-                    className="w-20 h-36 object-cover rounded-lg flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-20 h-36 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-3xl">🧘‍♀️</span>
-                  </div>
+      {!showForm && (() => {
+        // Filter tutorials
+        let filteredTutorials = tutorials
+
+        // Filter by difficulty
+        if (filterDifficulty !== 'all') {
+          filteredTutorials = filteredTutorials.filter(t => t.difficulty === filterDifficulty)
+        }
+
+        // Filter by search query
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase()
+          filteredTutorials = filteredTutorials.filter(t => 
+            t.title.toLowerCase().includes(query) ||
+            t.description?.toLowerCase().includes(query) ||
+            t.difficulty.toLowerCase().includes(query) ||
+            new Date(t.created_at).toLocaleDateString().includes(query)
+          )
+        }
+
+        return (
+          <div className="space-y-4">
+            {/* Search and Filter Bar */}
+            <div className="space-y-3">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search by name, date, difficulty..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 )}
-                
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-gray-900 mb-1 truncate">{tutorial.title}</h4>
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className={`text-xs px-2 py-1 rounded-full text-white ${difficultyColors[tutorial.difficulty]}`}>
-                      {tutorial.difficulty}
-                    </span>
-                    {tutorial.collection && (
-                      <span className="text-xs bg-gray-100 px-2 py-1 rounded">{tutorial.collection}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleEdit(tutorial)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(tutorial.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
+              </div>
+
+              {/* Difficulty Filters */}
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <button
+                  onClick={() => setFilterDifficulty('all')}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+                    filterDifficulty === 'all'
+                      ? 'bg-purple-600 text-white shadow-md'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  All ({tutorials.length})
+                </button>
+                {(['easy', 'intermediate', 'advanced', 'drop'] as DifficultyLevel[]).map((diff) => (
+                  <button
+                    key={diff}
+                    onClick={() => setFilterDifficulty(diff)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+                      filterDifficulty === diff
+                        ? 'bg-purple-600 text-white shadow-md'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {diff.charAt(0).toUpperCase() + diff.slice(1)} ({tutorials.filter(t => t.difficulty === diff).length})
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
 
-          {tutorials.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <p>No tutorials yet. Create your first one!</p>
-            </div>
-          )}
-        </div>
-      )}
+            {/* Results Header */}
+            <h3 className="text-lg font-bold text-gray-900">
+              {searchQuery || filterDifficulty !== 'all' 
+                ? `${filteredTutorials.length} Result${filteredTutorials.length !== 1 ? 's' : ''}`
+                : `All Tutorials (${tutorials.length})`
+              }
+            </h3>
+
+            {/* Tutorials Grid with Landscape Thumbnails */}
+            {filteredTutorials.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {filteredTutorials.map((tutorial) => (
+                  <div key={tutorial.id} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                    {/* Landscape Thumbnail */}
+                    {tutorial.thumbnail_url ? (
+                      <img
+                        src={tutorial.thumbnail_url}
+                        alt={tutorial.title}
+                        className="w-full aspect-[4/3] object-cover"
+                      />
+                    ) : (
+                      <div className="w-full aspect-[4/3] bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+                        <span className="text-6xl">🧘‍♀️</span>
+                      </div>
+                    )}
+                    
+                    {/* Content */}
+                    <div className="p-4">
+                      <h4 className="font-bold text-gray-900 mb-2 line-clamp-2">{tutorial.title}</h4>
+                      
+                      {/* Badges */}
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        <span className={`text-xs px-3 py-1 rounded-full text-white font-semibold ${difficultyColors[tutorial.difficulty]}`}>
+                          {tutorial.difficulty.toUpperCase()}
+                        </span>
+                        {tutorial.difficulty_stars && (
+                          <span className="text-xs px-2 py-1 bg-white border border-gray-300 rounded-full">
+                            {'⭐️'.repeat(tutorial.difficulty_stars)}
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-500">
+                          {new Date(tutorial.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEdit(tutorial)}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors font-medium"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(tutorial.id)}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors font-medium"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                {tutorials.length === 0 ? (
+                  <p>No tutorials yet. Create your first one!</p>
+                ) : (
+                  <>
+                    <p>No tutorials match your search.</p>
+                    <button
+                      onClick={() => {
+                        setSearchQuery('')
+                        setFilterDifficulty('all')
+                      }}
+                      className="mt-2 text-purple-600 hover:text-purple-700 font-medium"
+                    >
+                      Clear filters
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }
