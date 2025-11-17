@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Shuffle, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -14,6 +14,8 @@ export function TutorialShuffle() {
   const [showModal, setShowModal] = useState(false)
   const [currentTutorial, setCurrentTutorial] = useState<Tutorial | null>(null)
   const [finalTutorial, setFinalTutorial] = useState<Tutorial | null>(null)
+  const shuffleIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const supabase = createClient()
   const router = useRouter()
 
@@ -30,8 +32,28 @@ export function TutorialShuffle() {
     fetchTutorials()
   }, [supabase])
 
+  // Clean up intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (shuffleIntervalRef.current) {
+        clearInterval(shuffleIntervalRef.current)
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
+
   const handleShuffle = () => {
     if (tutorials.length === 0) return
+    
+    // Clear any existing intervals
+    if (shuffleIntervalRef.current) {
+      clearInterval(shuffleIntervalRef.current)
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
     
     setShowModal(true)
     setIsShuffling(true)
@@ -42,31 +64,37 @@ export function TutorialShuffle() {
     const finalTut = tutorials[randomIndex]
     
     let count = 0
-    const totalCycles = 30 // Total number of changes
-    let speed = 50 // Start fast
+    const totalCycles = 25 // Total number of changes
+    const baseSpeed = 80 // milliseconds per change
     
-    const shuffleInterval = setInterval(() => {
-      // Get a random tutorial
+    const runCycle = () => {
+      if (count >= totalCycles) {
+        // Animation complete
+        setCurrentTutorial(finalTut)
+        setFinalTutorial(finalTut)
+        setIsShuffling(false)
+        return
+      }
+      
+      // Get a random tutorial for this cycle
       const randomIdx = Math.floor(Math.random() * tutorials.length)
       setCurrentTutorial(tutorials[randomIdx])
       
       count++
       
-      // Slow down near the end
-      if (count > 20) {
-        speed += 30
-        clearInterval(shuffleInterval)
-        setTimeout(() => handleShuffle(), speed)
+      // Calculate speed - slow down as we approach the end
+      let delay = baseSpeed
+      if (count > 15) {
+        // Gradually slow down in the last 10 cycles
+        delay = baseSpeed + ((count - 15) * 50)
       }
       
-      // Stop at the final tutorial
-      if (count >= totalCycles) {
-        clearInterval(shuffleInterval)
-        setCurrentTutorial(finalTut)
-        setFinalTutorial(finalTut)
-        setIsShuffling(false)
-      }
-    }, speed)
+      // Schedule next cycle
+      timeoutRef.current = setTimeout(runCycle, delay)
+    }
+    
+    // Start the animation
+    runCycle()
   }
 
   const handleGoToTutorial = () => {
@@ -76,7 +104,19 @@ export function TutorialShuffle() {
   }
 
   const handleClose = () => {
+    // Clear any running animations
+    if (shuffleIntervalRef.current) {
+      clearInterval(shuffleIntervalRef.current)
+      shuffleIntervalRef.current = null
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    
+    // Reset state
     setShowModal(false)
+    setIsShuffling(false)
     setCurrentTutorial(null)
     setFinalTutorial(null)
   }
@@ -112,8 +152,16 @@ export function TutorialShuffle() {
 
       {/* Shuffle Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl">
+        <div 
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={(e) => {
+            // Close if clicking the backdrop
+            if (e.target === e.currentTarget) {
+              handleClose()
+            }
+          }}
+        >
+          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl relative">
             {/* Close Button */}
             <div className="absolute top-4 right-4 z-10">
               <button
