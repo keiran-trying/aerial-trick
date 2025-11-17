@@ -191,34 +191,50 @@ export function AdminDashboardSimple() {
 
       // Upload video ONLY if a new file is provided
       if (videoFile) {
-        // Extract video duration
+        // Try to extract video duration (optional - don't block upload if it fails)
         try {
           durationMinutes = await getVideoDuration(videoFile)
         } catch (error) {
-          console.error('Error getting video duration:', error)
+          console.warn('Could not extract video duration, continuing with upload:', error)
+          // Duration will be null, which is fine
         }
 
         const videoExt = videoFile.name.split('.').pop()
         const videoFileName = `${Date.now()}-${title.replace(/\s+/g, '-')}.${videoExt}`
         
         try {
+          console.log('Uploading video to Supabase storage...')
           const { data: videoData, error: videoError } = await supabase.storage
             .from('tutorials')
-            .upload(videoFileName, videoFile)
+            .upload(videoFileName, videoFile, {
+              cacheControl: '3600',
+              upsert: false
+            })
 
           if (videoError) {
-            console.error('Video upload error:', videoError)
-            throw new Error(`Failed to upload video: ${videoError.message}. Please check storage permissions in Supabase.`)
+            console.error('Video upload error details:', {
+              message: videoError.message,
+              statusCode: videoError.statusCode,
+              error: videoError
+            })
+            
+            if (videoError.message.includes('fetch') || videoError.message.includes('Failed to fetch')) {
+              throw new Error('Storage upload failed. Please make sure:\n1. You ran the storage policies SQL script in Supabase\n2. The "tutorials" storage bucket exists and is PUBLIC\n3. You are logged in')
+            }
+            
+            throw new Error(`Failed to upload video: ${videoError.message}`)
           }
 
+          console.log('Video uploaded successfully:', videoData)
           const { data: videoUrlData } = supabase.storage
             .from('tutorials')
             .getPublicUrl(videoData.path)
 
           videoUrl = videoUrlData.publicUrl
+          console.log('Video URL:', videoUrl)
         } catch (uploadError: any) {
           console.error('Video upload error:', uploadError)
-          throw new Error(`Video upload failed: ${uploadError.message || 'Please check your storage bucket permissions in Supabase.'}`)
+          throw uploadError
         }
       }
 
