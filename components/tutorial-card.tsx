@@ -78,13 +78,18 @@ export function TutorialCard({ tutorial, featured = false, isFavorite: initialFa
             )}
             
             {/* Difficulty Badge - Smaller */}
-            <div className="absolute top-2 left-2">
+            <div className="absolute top-2 left-2 flex items-center gap-1">
               <span className={cn(
                 'px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md uppercase',
                 difficultyColors[tutorial.difficulty]
               )}>
                 {tutorial.difficulty[0]}
               </span>
+              {tutorial.difficulty_stars && (
+                <span className="px-1.5 py-0.5 bg-white/90 backdrop-blur rounded-full text-[9px] shadow-md">
+                  {'⭐️'.repeat(tutorial.difficulty_stars)}
+                </span>
+              )}
             </div>
 
             {/* Favorite Button - Smaller */}
@@ -143,13 +148,18 @@ export function TutorialCard({ tutorial, featured = false, isFavorite: initialFa
           )}
           
           {/* Difficulty Badge */}
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-3 left-3 flex items-center gap-2">
             <span className={cn(
               'px-3 py-1 rounded-full text-xs font-semibold text-white shadow-md',
               difficultyColors[tutorial.difficulty]
             )}>
               {tutorial.difficulty.toUpperCase()}
             </span>
+            {tutorial.difficulty_stars && (
+              <span className="px-2 py-1 bg-white/90 backdrop-blur rounded-full text-xs shadow-md">
+                {'⭐️'.repeat(tutorial.difficulty_stars)}
+              </span>
+            )}
           </div>
 
           {/* Favorite Button */}
