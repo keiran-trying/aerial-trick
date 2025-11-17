@@ -21,7 +21,7 @@ export function AdminDashboardSimple() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('easy')
-  const [difficultyStars, setDifficultyStars] = useState<number>(2) // 1-3 stars
+  const [difficultyStars, setDifficultyStars] = useState<number>(1) // Sub-level difficulty (1-3)
   const [collectionsInput, setCollectionsInput] = useState('') // Comma-separated collections
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
@@ -51,7 +51,7 @@ export function AdminDashboardSimple() {
     setTitle('')
     setDescription('')
     setDifficulty('easy')
-    setDifficultyStars(2)
+    setDifficultyStars(1)
     setCollectionsInput('')
     setVideoFile(null)
     setThumbnailFile(null)
@@ -63,7 +63,7 @@ export function AdminDashboardSimple() {
     setTitle(tutorial.title)
     setDescription(tutorial.description || '')
     setDifficulty(tutorial.difficulty)
-    setDifficultyStars(tutorial.difficulty_stars || 2)
+    setDifficultyStars(tutorial.difficulty_stars || 1)
     setEditingId(tutorial.id)
     
     // Fetch tutorial's collections
@@ -452,32 +452,32 @@ export function AdminDashboardSimple() {
               </select>
             </div>
 
-            {/* Difficulty Stars */}
+            {/* Difficulty Stars Sub-level */}
             <div>
-              <label className="block text-sm font-bold text-gray-900 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-1">
                 Sub-Level *
               </label>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 {[1, 2, 3].map((stars) => (
                   <button
                     key={stars}
                     type="button"
                     onClick={() => setDifficultyStars(stars)}
-                    className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    className={`flex-1 px-4 py-3 border-2 rounded-lg font-semibold transition-all ${
                       difficultyStars === stars
                         ? 'border-purple-500 bg-purple-50 text-purple-700'
                         : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300'
                     }`}
                   >
-                    <div className="text-xl mb-1">{'⭐️'.repeat(stars)}</div>
-                    <div className="text-xs font-semibold">
-                      {stars === 1 ? 'Easier' : stars === 2 ? 'Medium' : 'Harder'}
+                    <div className="text-lg mb-1">{'⭐️'.repeat(stars)}</div>
+                    <div className="text-xs">
+                      {stars === 1 ? 'Easiest' : stars === 2 ? 'Moderate' : 'Hardest'}
                     </div>
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-gray-600 mt-2">
-                Sub-level within the difficulty category
+              <p className="text-xs text-gray-600 mt-1">
+                Choose the sub-level within the difficulty category
               </p>
             </div>
 
@@ -578,11 +578,6 @@ export function AdminDashboardSimple() {
                     <span className={`text-xs px-2 py-1 rounded-full text-white ${difficultyColors[tutorial.difficulty]}`}>
                       {tutorial.difficulty}
                     </span>
-                    {tutorial.difficulty_stars && (
-                      <span className="text-xs px-2 py-1 bg-gray-100 rounded">
-                        {'⭐️'.repeat(tutorial.difficulty_stars)}
-                      </span>
-                    )}
                     {tutorial.collection && (
                       <span className="text-xs bg-gray-100 px-2 py-1 rounded">{tutorial.collection}</span>
                     )}

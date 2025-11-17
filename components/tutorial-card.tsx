@@ -85,7 +85,7 @@ export function TutorialCard({ tutorial, featured = false, isFavorite: initialFa
               )}>
                 {tutorial.difficulty[0]}
               </span>
-              {tutorial.difficulty_stars && (
+              {tutorial.difficulty_stars && tutorial.difficulty_stars > 0 && (
                 <span className="px-1.5 py-0.5 bg-white/90 backdrop-blur rounded-full text-[9px] shadow-md">
                   {'⭐️'.repeat(tutorial.difficulty_stars)}
                 </span>
@@ -155,7 +155,7 @@ export function TutorialCard({ tutorial, featured = false, isFavorite: initialFa
             )}>
               {tutorial.difficulty.toUpperCase()}
             </span>
-            {tutorial.difficulty_stars && (
+            {tutorial.difficulty_stars && tutorial.difficulty_stars > 0 && (
               <span className="px-2 py-1 bg-white/90 backdrop-blur rounded-full text-xs shadow-md">
                 {'⭐️'.repeat(tutorial.difficulty_stars)}
               </span>
