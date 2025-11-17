@@ -607,7 +607,7 @@ export function AdminDashboardSimple() {
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 <button
                   onClick={() => setFilterDifficulty('all')}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                     filterDifficulty === 'all'
                       ? 'bg-purple-600 text-white shadow-md'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -619,7 +619,7 @@ export function AdminDashboardSimple() {
                   <button
                     key={diff}
                     onClick={() => setFilterDifficulty(diff)}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                       filterDifficulty === diff
                         ? 'bg-purple-600 text-white shadow-md'
                         : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -658,38 +658,40 @@ export function AdminDashboardSimple() {
                     )}
                     
                     {/* Content */}
-                    <div className="p-4">
-                      <h4 className="font-bold text-gray-900 mb-2 line-clamp-2">{tutorial.title}</h4>
+                    <div className="p-3">
+                      <h4 className="font-bold text-gray-900 mb-2 line-clamp-2 text-sm">{tutorial.title}</h4>
                       
                       {/* Badges */}
-                      <div className="flex items-center gap-2 mb-3 flex-wrap">
-                        <span className={`text-xs px-3 py-1 rounded-full text-white font-semibold ${difficultyColors[tutorial.difficulty]}`}>
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span className={`text-xs px-2 py-0.5 rounded-full text-white font-semibold ${difficultyColors[tutorial.difficulty]}`}>
                           {tutorial.difficulty.toUpperCase()}
                         </span>
                         {tutorial.difficulty_stars && (
-                          <span className="text-xs px-2 py-1 bg-white border border-gray-300 rounded-full">
+                          <span className="text-xs px-1.5 py-0.5 bg-white border border-gray-300 rounded-full">
                             {'⭐️'.repeat(tutorial.difficulty_stars)}
                           </span>
                         )}
-                        <span className="text-xs text-gray-500">
-                          {new Date(tutorial.created_at).toLocaleDateString()}
-                        </span>
+                      </div>
+                      
+                      {/* Date */}
+                      <div className="text-xs text-gray-500 mb-3">
+                        {new Date(tutorial.created_at).toLocaleDateString()}
                       </div>
 
                       {/* Actions */}
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleEdit(tutorial)}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors font-medium"
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-sm font-medium"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
                           Edit
                         </button>
                         <button
                           onClick={() => handleDelete(tutorial.id)}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors font-medium"
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors text-sm font-medium"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                           Delete
                         </button>
                       </div>
