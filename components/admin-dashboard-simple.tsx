@@ -333,9 +333,10 @@ export function AdminDashboardSimple() {
 
       resetForm()
       alert(editingId ? 'Tutorial updated successfully!' : 'Tutorial created successfully!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving tutorial:', error)
-      alert('Failed to save tutorial')
+      const errorMessage = error?.message || error?.error_description || 'Unknown error'
+      alert(`Failed to save tutorial: ${errorMessage}\n\nIf you see a column error, make sure you've run the SQL migration in Supabase.`)
     } finally {
       setIsSubmitting(false)
     }
@@ -457,21 +458,21 @@ export function AdminDashboardSimple() {
               <label className="block text-sm font-bold text-gray-900 mb-1">
                 Sub-Level *
               </label>
-              <div className="flex gap-2">
-                {[1, 2, 3].map((stars) => (
+              <div className="flex gap-3">
+                {[1, 2].map((stars) => (
                   <button
                     key={stars}
                     type="button"
                     onClick={() => setDifficultyStars(stars)}
-                    className={`flex-1 px-4 py-3 border-2 rounded-lg font-semibold transition-all ${
+                    className={`flex-1 px-6 py-4 border-2 rounded-lg font-semibold transition-all ${
                       difficultyStars === stars
                         ? 'border-purple-500 bg-purple-50 text-purple-700'
                         : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300'
                     }`}
                   >
-                    <div className="text-lg mb-1">{'⭐️'.repeat(stars)}</div>
-                    <div className="text-xs">
-                      {stars === 1 ? 'Easiest' : stars === 2 ? 'Moderate' : 'Hardest'}
+                    <div className="text-xl mb-1">{'⭐️'.repeat(stars)}</div>
+                    <div className="text-sm font-bold">
+                      {stars === 1 ? 'Easier' : 'Harder'}
                     </div>
                   </button>
                 ))}

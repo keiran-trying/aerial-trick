@@ -1,18 +1,17 @@
 # ⭐️ Difficulty Stars Feature Setup
 
-This feature adds sub-levels within each difficulty category, allowing you to mark tutorials with 1-3 stars for finer difficulty distinctions.
+This feature adds sub-levels within each difficulty category, allowing you to mark tutorials with 1-2 stars for finer difficulty distinctions.
 
 ---
 
 ## 🎯 What This Does:
 
-- **1 Star (⭐️)**: Easiest within the category
-- **2 Stars (⭐️⭐️)**: Moderate difficulty
-- **3 Stars (⭐️⭐️⭐️)**: Hardest within the category
+- **1 Star (⭐️)**: Easier version within the category
+- **2 Stars (⭐️⭐️)**: Harder version within the category
 
 For example, in the "Easy" category:
 - An "Easy ⭐️" tutorial might be a basic hammock position
-- An "Easy ⭐️⭐️⭐️" tutorial might be an easy inversion that still requires some strength
+- An "Easy ⭐️⭐️" tutorial might be an easy inversion that requires some strength
 
 ---
 
@@ -29,10 +28,10 @@ For example, in the "Easy" category:
 ```sql
 -- Add difficulty stars column to tutorials table
 ALTER TABLE tutorials 
-ADD COLUMN IF NOT EXISTS difficulty_stars INTEGER DEFAULT 1 CHECK (difficulty_stars >= 1 AND difficulty_stars <= 3);
+ADD COLUMN IF NOT EXISTS difficulty_stars INTEGER DEFAULT 1 CHECK (difficulty_stars >= 1 AND difficulty_stars <= 2);
 
 -- Add a comment to explain the column
-COMMENT ON COLUMN tutorials.difficulty_stars IS 'Sub-level difficulty rating: 1 = easiest within category, 2 = moderate, 3 = hardest within category';
+COMMENT ON COLUMN tutorials.difficulty_stars IS 'Sub-level difficulty rating: 1 = easier, 2 = harder within category';
 
 -- Update existing tutorials to have 1 star by default
 UPDATE tutorials 
@@ -50,10 +49,9 @@ WHERE difficulty_stars IS NULL;
 1. **Open your app** at `http://localhost:3000`
 2. **Go to Admin Portal** (Profile → Settings icon)
 3. **Click "Add New Tutorial"**
-4. You should now see a **"Sub-Level"** selector with 3 star options:
-   - ⭐️ Easiest
-   - ⭐️⭐️ Moderate  
-   - ⭐️⭐️⭐️ Hardest
+4. You should now see a **"Sub-Level"** selector with 2 star options:
+   - ⭐️ Easier
+   - ⭐️⭐️ Harder
 
 5. **Upload a tutorial** and assign it stars
 6. **View the tutorial** on the Home page - you should see the stars displayed next to the difficulty badge!
@@ -75,18 +73,19 @@ Stars will be displayed on:
 
 ### Easy Category:
 - **Basic Hammock ⭐️**: Just sit in the hammock
-- **Seated Twist ⭐️⭐️**: Requires some flexibility
-- **Easy Inversion ⭐️⭐️⭐️**: Requires upper body strength
+- **Easy Inversion ⭐️⭐️**: Requires upper body strength
 
 ### Intermediate Category:
 - **Hip Key ⭐️**: Entry-level intermediate move
-- **Candlestick ⭐️⭐️**: More challenging
-- **Bird's Nest ⭐️⭐️⭐️**: Advanced intermediate
+- **Bird's Nest ⭐️⭐️**: Advanced intermediate
 
 ### Advanced Category:
 - **Star Drop ⭐️**: Basic drop
-- **Mermaid ⭐️⭐️**: Harder drop
-- **Scorpion Drop ⭐️⭐️⭐️**: Very advanced
+- **Scorpion Drop ⭐️⭐️**: Very advanced
+
+### Drop Category:
+- **Cocoon Drop ⭐️**: Controlled drop
+- **Ankle Hang Drop ⭐️⭐️**: More challenging drop
 
 ---
 
@@ -109,8 +108,8 @@ Your app now supports difficulty sub-levels! Users can now see at a glance which
 
 ## 💡 Pro Tips:
 
-- Use 1 star for tutorials that are **good starting points** for that difficulty level
-- Use 2 stars for tutorials that require **more practice or strength**
-- Use 3 stars for tutorials that are **the hardest** within that category
+- Use 1 star (⭐️) for tutorials that are **easier** and good starting points for that difficulty level
+- Use 2 stars (⭐️⭐️) for tutorials that are **harder** and require more practice, strength, or flexibility
 - Be consistent with your star ratings to help users progress smoothly!
+- When users click on a difficulty tab (Easy, Intermediate, Advanced, Drop), they'll see tutorials grouped by stars with clear labels
 

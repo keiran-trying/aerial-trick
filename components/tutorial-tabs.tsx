@@ -57,6 +57,10 @@ export function TutorialTabs() {
 
   const favoriteTutorials = tutorials.filter(t => favorites.includes(t.id))
   const otherTutorials = tutorials.filter(t => !favorites.includes(t.id))
+  
+  // Group tutorials by difficulty stars
+  const oneStarTutorials = otherTutorials.filter(t => (t.difficulty_stars || 1) === 1)
+  const twoStarTutorials = otherTutorials.filter(t => (t.difficulty_stars || 1) === 2)
 
   return (
     <div className="space-y-4">
@@ -90,7 +94,7 @@ export function TutorialTabs() {
           ))}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Favorites Section */}
           {favoriteTutorials.length > 0 && (
             <div>
@@ -105,27 +109,42 @@ export function TutorialTabs() {
             </div>
           )}
 
-          {/* All Tutorials */}
-          {otherTutorials.length > 0 ? (
+          {/* One Star Tutorials - Easier */}
+          {oneStarTutorials.length > 0 && (
             <div>
-              {favoriteTutorials.length > 0 && (
-                <h3 className="text-xs font-bold text-gray-700 mb-2 px-1 uppercase tracking-wide">
-                  All {tabs.find(t => t.value === activeTab)?.label} Tutorials
-                </h3>
-              )}
+              <h3 className="text-sm font-bold text-gray-900 mb-2 px-1 flex items-center gap-2">
+                <span>{tabs.find(t => t.value === activeTab)?.label} ⭐</span>
+                <span className="text-xs font-normal text-gray-600">(Easier)</span>
+              </h3>
               <div className="grid grid-cols-2 gap-4">
-                {otherTutorials.map((tutorial) => (
+                {oneStarTutorials.map((tutorial) => (
                   <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
                 ))}
               </div>
             </div>
-          ) : (
-            !favoriteTutorials.length && (
-              <div className="text-center py-12 text-gray-500">
-                <p>No tutorials available yet.</p>
-                <p className="text-sm mt-1">Check back soon!</p>
+          )}
+
+          {/* Two Star Tutorials - Harder */}
+          {twoStarTutorials.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 mb-2 px-1 flex items-center gap-2">
+                <span>{tabs.find(t => t.value === activeTab)?.label} ⭐⭐</span>
+                <span className="text-xs font-normal text-gray-600">(Harder)</span>
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                {twoStarTutorials.map((tutorial) => (
+                  <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
+                ))}
               </div>
-            )
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!favoriteTutorials.length && !oneStarTutorials.length && !twoStarTutorials.length && (
+            <div className="text-center py-12 text-gray-500">
+              <p>No tutorials available yet.</p>
+              <p className="text-sm mt-1">Check back soon!</p>
+            </div>
           )}
         </div>
       )}
