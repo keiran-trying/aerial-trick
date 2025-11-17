@@ -62,7 +62,7 @@ export function FavoritesList() {
   return (
     <div className="p-4">
       {tutorials.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {tutorials.map((tutorial) => (
             <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite compact />
           ))}

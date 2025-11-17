@@ -58,7 +58,7 @@ BEGIN
 
     -- Insert the new daily trick
     IF v_tutorial_id IS NOT NULL THEN
-      INSERT INTO daily_trick (tutorial_id, daily_trick.date)
+      INSERT INTO daily_trick (tutorial_id, date)
       VALUES (v_tutorial_id, v_today)
       RETURNING * INTO v_daily_trick;
     END IF;

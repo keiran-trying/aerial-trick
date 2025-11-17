@@ -106,7 +106,7 @@ export function CollectionDetail({ collection }: CollectionDetailProps) {
 
         {/* Tutorials */}
         {loading ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="bg-white rounded-lg shadow animate-pulse">
                 <div className="aspect-[9/16] bg-gray-200 rounded-lg mb-2"></div>
@@ -117,7 +117,7 @@ export function CollectionDetail({ collection }: CollectionDetailProps) {
             ))}
           </div>
         ) : tutorials.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             {tutorials.map((tutorial) => (
               <TutorialCard 
                 key={tutorial.id} 

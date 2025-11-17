@@ -60,9 +60,9 @@ export function TutorialCard({ tutorial, featured = false, isFavorite: initialFa
   if (compact) {
     return (
       <Link href={`/tutorial/${tutorial.id}`}>
-        <div className="relative rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all">
-          {/* Compact Thumbnail */}
-          <div className="relative aspect-[9/16] bg-gradient-to-br from-gray-200 to-gray-300">
+        <div className="relative rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+          {/* Compact Thumbnail - Landscape */}
+          <div className="relative aspect-[4/3] bg-gradient-to-br from-amber-100 to-amber-200">
             {tutorial.thumbnail_url ? (
               <Image
                 src={tutorial.thumbnail_url}
@@ -110,8 +110,8 @@ export function TutorialCard({ tutorial, featured = false, isFavorite: initialFa
           </div>
 
           {/* Compact Content */}
-          <div className="p-2 bg-white">
-            <h3 className="font-semibold text-gray-900 text-xs line-clamp-2 leading-tight">
+          <div className="p-3 bg-white">
+            <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 leading-tight">
               {tutorial.title}
             </h3>
           </div>

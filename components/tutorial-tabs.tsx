@@ -97,7 +97,7 @@ export function TutorialTabs() {
               <h3 className="text-xs font-bold text-gray-700 mb-2 px-1 uppercase tracking-wide">
                 ⭐ Your Favorites
               </h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {favoriteTutorials.map((tutorial) => (
                   <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite compact />
                 ))}
@@ -113,7 +113,7 @@ export function TutorialTabs() {
                   All {tabs.find(t => t.value === activeTab)?.label} Tutorials
                 </h3>
               )}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {otherTutorials.map((tutorial) => (
                   <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
                 ))}
