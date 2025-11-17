@@ -9,7 +9,8 @@ import type { Database } from '@/lib/types/database.types'
 type Tutorial = Database['public']['Tables']['tutorials']['Row']
 type DifficultyLevel = Database['public']['Tables']['tutorials']['Row']['difficulty']
 
-const tabs: { label: string; value: DifficultyLevel }[] = [
+const tabs: { label: string; value: DifficultyLevel | 'all' }[] = [
+  { label: 'All', value: 'all' },
   { label: 'Easy', value: 'easy' },
   { label: 'Intermediate', value: 'intermediate' },
   { label: 'Advanced', value: 'advanced' },
@@ -17,7 +18,7 @@ const tabs: { label: string; value: DifficultyLevel }[] = [
 ]
 
 export function TutorialTabs() {
-  const [activeTab, setActiveTab] = useState<DifficultyLevel>('easy')
+  const [activeTab, setActiveTab] = useState<DifficultyLevel | 'all'>('all')
   const [tutorials, setTutorials] = useState<Tutorial[]>([])
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -27,11 +28,16 @@ export function TutorialTabs() {
     async function fetchTutorials() {
       setLoading(true)
       try {
-        const { data } = await supabase
+        let query = supabase
           .from('tutorials')
           .select('*')
-          .eq('difficulty', activeTab)
-          .order('created_at', { ascending: false })
+          
+        // Only filter by difficulty if not "all"
+        if (activeTab !== 'all') {
+          query = query.eq('difficulty', activeTab)
+        }
+        
+        const { data } = await query.order('created_at', { ascending: false })
 
         setTutorials(data || [])
 
@@ -58,9 +64,15 @@ export function TutorialTabs() {
   const favoriteTutorials = tutorials.filter(t => favorites.includes(t.id))
   const otherTutorials = tutorials.filter(t => !favorites.includes(t.id))
   
-  // Group tutorials by difficulty stars
+  // Group tutorials by difficulty stars (for specific difficulty tabs)
   const oneStarTutorials = otherTutorials.filter(t => (t.difficulty_stars || 1) === 1)
   const twoStarTutorials = otherTutorials.filter(t => (t.difficulty_stars || 1) === 2)
+  
+  // Group by difficulty level (for "All" tab)
+  const easyTutorials = otherTutorials.filter(t => t.difficulty === 'easy')
+  const intermediateTutorials = otherTutorials.filter(t => t.difficulty === 'intermediate')
+  const advancedTutorials = otherTutorials.filter(t => t.difficulty === 'advanced')
+  const dropTutorials = otherTutorials.filter(t => t.difficulty === 'drop')
 
   return (
     <div className="space-y-4">
@@ -109,38 +121,84 @@ export function TutorialTabs() {
             </div>
           )}
 
-          {/* One Star Tutorials - Easier */}
-          {oneStarTutorials.length > 0 && (
-            <div>
-              <h3 className="text-sm font-bold text-gray-900 mb-2 px-1 flex items-center gap-2">
-                <span>{tabs.find(t => t.value === activeTab)?.label} ⭐</span>
-                <span className="text-xs font-normal text-gray-600">(Easier)</span>
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                {oneStarTutorials.map((tutorial) => (
-                  <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Two Star Tutorials - Harder */}
-          {twoStarTutorials.length > 0 && (
-            <div>
-              <h3 className="text-sm font-bold text-gray-900 mb-2 px-1 flex items-center gap-2">
-                <span>{tabs.find(t => t.value === activeTab)?.label} ⭐⭐</span>
-                <span className="text-xs font-normal text-gray-600">(Harder)</span>
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                {twoStarTutorials.map((tutorial) => (
-                  <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
-                ))}
-              </div>
-            </div>
+          {/* Show by difficulty level if "All" tab is active */}
+          {activeTab === 'all' ? (
+            <>
+              {easyTutorials.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 mb-2 px-1">Easy</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {easyTutorials.map((tutorial) => (
+                      <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {intermediateTutorials.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 mb-2 px-1">Intermediate</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {intermediateTutorials.map((tutorial) => (
+                      <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {advancedTutorials.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 mb-2 px-1">Advanced</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {advancedTutorials.map((tutorial) => (
+                      <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {dropTutorials.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 mb-2 px-1">Drop</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {dropTutorials.map((tutorial) => (
+                      <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Show by star rating for specific difficulty tabs */}
+              {oneStarTutorials.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 mb-2 px-1 flex items-center gap-2">
+                    <span>{tabs.find(t => t.value === activeTab)?.label} ⭐</span>
+                    <span className="text-xs font-normal text-gray-600">(Easier)</span>
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {oneStarTutorials.map((tutorial) => (
+                      <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {twoStarTutorials.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 mb-2 px-1 flex items-center gap-2">
+                    <span>{tabs.find(t => t.value === activeTab)?.label} ⭐⭐</span>
+                    <span className="text-xs font-normal text-gray-600">(Harder)</span>
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {twoStarTutorials.map((tutorial) => (
+                      <TutorialCard key={tutorial.id} tutorial={tutorial} isFavorite={false} compact />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Empty State */}
-          {!favoriteTutorials.length && !oneStarTutorials.length && !twoStarTutorials.length && (
+          {!favoriteTutorials.length && otherTutorials.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               <p>No tutorials available yet.</p>
               <p className="text-sm mt-1">Check back soon!</p>
