@@ -291,15 +291,26 @@ export function AdminDashboardSimple() {
           .split(',')
           .map(name => name.trim())
           .filter(name => name.length > 0)
+          .map(name => {
+            // Normalize to title case (capitalize first letter of each word)
+            return name
+              .toLowerCase()
+              .split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ')
+          })
 
         // Create collections if they don't exist and link them
         for (const collectionName of collectionNames) {
-          // Try to get existing collection
-          let { data: existingCollection } = await supabase
+          // Try to get existing collection (case-insensitive search)
+          let { data: existingCollections } = await supabase
             .from('collections')
-            .select('id')
-            .eq('name', collectionName)
-            .single()
+            .select('id, name')
+
+          // Find matching collection (case-insensitive)
+          let existingCollection = existingCollections?.find(
+            col => col.name.toLowerCase() === collectionName.toLowerCase()
+          )
 
           let collectionId = existingCollection?.id
 
