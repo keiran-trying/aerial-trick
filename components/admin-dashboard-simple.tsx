@@ -604,10 +604,10 @@ export function AdminDashboardSimple() {
               </div>
 
               {/* Difficulty Filters */}
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
                 <button
                   onClick={() => setFilterDifficulty('all')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all ${
                     filterDifficulty === 'all'
                       ? 'bg-purple-600 text-white shadow-md'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -619,7 +619,7 @@ export function AdminDashboardSimple() {
                   <button
                     key={diff}
                     onClick={() => setFilterDifficulty(diff)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all ${
                       filterDifficulty === diff
                         ? 'bg-purple-600 text-white shadow-md'
                         : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
