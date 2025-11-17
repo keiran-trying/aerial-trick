@@ -16,6 +16,7 @@ export function AdminDashboardSimple() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<string>('')
   
   // Form state
   const [title, setTitle] = useState('')
@@ -61,6 +62,7 @@ export function AdminDashboardSimple() {
     setThumbnailFile(null)
     setEditingId(null)
     setShowForm(false)
+    setUploadProgress('')
   }
 
   const handleEdit = async (tutorial: Tutorial) => {
@@ -174,6 +176,8 @@ export function AdminDashboardSimple() {
     }
 
     setIsSubmitting(true)
+    setUploadProgress('Starting upload...')
+    
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
@@ -191,6 +195,8 @@ export function AdminDashboardSimple() {
 
       // Upload video ONLY if a new file is provided
       if (videoFile) {
+        setUploadProgress('Processing video... (this may take a minute)')
+        
         // Try to extract video duration (optional - don't block upload if it fails)
         try {
           durationMinutes = await getVideoDuration(videoFile)
@@ -201,6 +207,9 @@ export function AdminDashboardSimple() {
 
         const videoExt = videoFile.name.split('.').pop()
         const videoFileName = `${Date.now()}-${title.replace(/\s+/g, '-')}.${videoExt}`
+        
+        const fileSizeMB = (videoFile.size / (1024 * 1024)).toFixed(1)
+        setUploadProgress(`Uploading video (${fileSizeMB} MB)... Please wait`)
         
         try {
           console.log('Uploading video to Supabase storage...')
@@ -240,6 +249,8 @@ export function AdminDashboardSimple() {
 
       // Upload thumbnail or generate from video
       if (thumbnailFile) {
+        setUploadProgress('Uploading thumbnail...')
+        
         const thumbExt = thumbnailFile.name.split('.').pop()
         const thumbFileName = `thumb-${Date.now()}-${title.replace(/\s+/g, '-')}.${thumbExt}`
         
@@ -284,6 +295,8 @@ export function AdminDashboardSimple() {
         }
       }
 
+      setUploadProgress('Saving tutorial to database...')
+      
       const tutorialData = {
         title: toTitleCase(title.trim()),
         description: description || null,
@@ -323,6 +336,7 @@ export function AdminDashboardSimple() {
 
       // Handle collections - create them if they don't exist
       if (tutorialId && collectionsInput.trim()) {
+        setUploadProgress('Processing collections...')
         // Remove old collections
         await supabase
           .from('tutorial_collections')
@@ -594,12 +608,27 @@ export function AdminDashboardSimple() {
               </label>
             </div>
 
+            {/* Upload Progress */}
+            {uploadProgress && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">{uploadProgress}</p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      {videoFile && `Large videos may take several minutes to upload`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {isSubmitting ? 'Saving...' : editingId ? 'Update Tutorial' : 'Create Tutorial'}
+              {isSubmitting ? (uploadProgress || 'Saving...') : editingId ? 'Update Tutorial' : 'Create Tutorial'}
             </button>
           </form>
         </div>
