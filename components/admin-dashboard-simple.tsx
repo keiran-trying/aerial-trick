@@ -155,6 +155,15 @@ export function AdminDashboardSimple() {
     })
   }
 
+  // Helper function to convert text to Title Case
+  const toTitleCase = (str: string) => {
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isSubmitting) return
@@ -242,7 +251,7 @@ export function AdminDashboardSimple() {
       }
 
       const tutorialData = {
-        title,
+        title: toTitleCase(title.trim()),
         description: description || null,
         video_url: videoUrl,
         thumbnail_url: thumbnailUrl,
@@ -291,14 +300,7 @@ export function AdminDashboardSimple() {
           .split(',')
           .map(name => name.trim())
           .filter(name => name.length > 0)
-          .map(name => {
-            // Normalize to title case (capitalize first letter of each word)
-            return name
-              .toLowerCase()
-              .split(' ')
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ')
-          })
+          .map(name => toTitleCase(name))
 
         // Create collections if they don't exist and link them
         for (const collectionName of collectionNames) {
