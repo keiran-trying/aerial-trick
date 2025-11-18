@@ -21,7 +21,7 @@ export function OnboardingFlow() {
     { value: 'static', label: 'Static Tricks', emoji: '🧘‍♀️' },
     { value: 'open_fabric', label: 'Open Fabric', emoji: '🎪' },
     { value: 'thigh_lock', label: 'Thigh Lock', emoji: '🦵' },
-    { value: 'footlock', label: 'Footlock', emoji: '👣' },
+    { value: 'footlock', label: 'Foot Lock', emoji: '👣' },
     { value: 'inversions', label: 'Inversions', emoji: '🙃' },
     { value: 'transitions', label: 'Transitions', emoji: '🔄' },
     { value: 'sequences', label: 'Sequences', emoji: '🎬' },
