@@ -7,29 +7,50 @@ import { Sparkles, ChevronRight, ChevronLeft } from 'lucide-react'
 
 type SkillLevel = 'easy' | 'intermediate' | 'advanced'
 type Interest = 'open_fabric' | 'single_strand' | 'thigh_lock' | 'footlock' | 'mermaid' | 'skirt' | 'pigeon' | 'inversions' | 'sequences' | 'other'
-type FabricLength = 'long' | 'short' | 'both'
+type InterestCategory = {
+  category: string
+  interests: { value: Interest; label: string; emoji: string }[]
+}
 
 export function OnboardingFlow() {
   const [step, setStep] = useState(1)
   const [skillLevel, setSkillLevel] = useState<SkillLevel | null>(null)
   const [interests, setInterests] = useState<Interest[]>([])
-  const [fabricLength, setFabricLength] = useState<FabricLength | null>(null)
   const [likesDrop, setLikesDrop] = useState<boolean | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
-  const interestOptions: { value: Interest; label: string; emoji: string }[] = [
-    { value: 'open_fabric', label: 'Open Fabric', emoji: '🎪' },
-    { value: 'single_strand', label: 'Single Strand', emoji: '🪢' },
-    { value: 'mermaid', label: 'Mermaid', emoji: '🧜‍♀️' },
-    { value: 'skirt', label: 'Skirt', emoji: '👗' },
-    { value: 'pigeon', label: 'Pigeon', emoji: '🕊️' },
-    { value: 'thigh_lock', label: 'Thigh Lock', emoji: '🦵' },
-    { value: 'footlock', label: 'Foot Lock', emoji: '👣' },
-    { value: 'inversions', label: 'Inversions', emoji: '🙃' },
-    { value: 'sequences', label: 'Sequences', emoji: '🎬' },
-    { value: 'other', label: 'Other', emoji: '✨' },
+  const interestCategories: InterestCategory[] = [
+    {
+      category: 'Fabric Style',
+      interests: [
+        { value: 'open_fabric', label: 'Open Fabric', emoji: '🎪' },
+        { value: 'single_strand', label: 'Single Strand', emoji: '🪢' },
+      ]
+    },
+    {
+      category: 'Wraps & Poses',
+      interests: [
+        { value: 'mermaid', label: 'Mermaid', emoji: '🧜‍♀️' },
+        { value: 'skirt', label: 'Skirt', emoji: '👗' },
+        { value: 'pigeon', label: 'Pigeon', emoji: '🕊️' },
+      ]
+    },
+    {
+      category: 'Locks',
+      interests: [
+        { value: 'thigh_lock', label: 'Thigh Lock', emoji: '🦵' },
+        { value: 'footlock', label: 'Foot Lock', emoji: '👣' },
+      ]
+    },
+    {
+      category: 'Skills',
+      interests: [
+        { value: 'inversions', label: 'Inversions', emoji: '🙃' },
+        { value: 'sequences', label: 'Sequences', emoji: '🎬' },
+      ]
+    },
   ]
 
   const toggleInterest = (interest: Interest) => {
@@ -41,7 +62,7 @@ export function OnboardingFlow() {
   }
 
   const handleSubmit = async () => {
-    if (!skillLevel || !fabricLength || likesDrop === null) {
+    if (!skillLevel || likesDrop === null) {
       alert('Please answer all questions')
       return
     }
@@ -61,7 +82,6 @@ export function OnboardingFlow() {
           user_id: user.id,
           skill_level: skillLevel,
           interests: interests,
-          fabric_length: fabricLength,
           likes_drop: likesDrop,
           onboarding_completed_at: new Date().toISOString(),
         })
@@ -96,7 +116,7 @@ export function OnboardingFlow() {
             Let's personalize your experience
           </p>
           <div className="mt-4 flex gap-2">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3].map((i) => (
               <div
                 key={i}
                 className={`h-1 flex-1 rounded-full transition-all ${
@@ -166,72 +186,36 @@ export function OnboardingFlow() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                {interestOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => toggleInterest(option.value)}
-                    className={`p-4 rounded-xl border-2 transition-all text-center ${
-                      interests.includes(option.value)
-                        ? 'border-purple-600 bg-purple-50 shadow-md'
-                        : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="text-3xl block mb-2">{option.emoji}</span>
-                    <p className="text-sm font-semibold text-gray-900">{option.label}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Fabric Length */}
-          {step === 3 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Fabric length preference?
-                </h2>
-                <p className="text-sm text-gray-600">
-                  Do you prefer long or short fabric for your practice?
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {[
-                  { value: 'long' as FabricLength, label: 'Long Fabric', desc: 'More room for drops and sequences', emoji: '📏' },
-                  { value: 'short' as FabricLength, label: 'Short Fabric', desc: 'Lower to the ground, safer for beginners', emoji: '📐' },
-                  { value: 'both' as FabricLength, label: 'Both', desc: 'I practice with different lengths', emoji: '✨' },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setFabricLength(option.value)}
-                    className={`w-full p-4 rounded-xl border-2 transition-all text-left flex items-center gap-4 ${
-                      fabricLength === option.value
-                        ? 'border-purple-600 bg-purple-50 shadow-md'
-                        : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="text-3xl">{option.emoji}</span>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-gray-900">{option.label}</h3>
-                      <p className="text-sm text-gray-600">{option.desc}</p>
+              <div className="space-y-4">
+                {interestCategories.map((category) => (
+                  <div key={category.category}>
+                    <h3 className="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                      {category.category}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {category.interests.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => toggleInterest(option.value)}
+                          className={`p-4 rounded-xl border-2 transition-all text-center ${
+                            interests.includes(option.value)
+                              ? 'border-purple-600 bg-purple-50 shadow-md'
+                              : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="text-3xl block mb-2">{option.emoji}</span>
+                          <p className="text-sm font-semibold text-gray-900">{option.label}</p>
+                        </button>
+                      ))}
                     </div>
-                    {fabricLength === option.value && (
-                      <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Step 4: Drops */}
-          {step === 4 && (
+          {/* Step 3: Drops */}
+          {step === 3 && (
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -288,7 +272,7 @@ export function OnboardingFlow() {
               </button>
             )}
             
-            {step < 4 ? (
+            {step < 3 ? (
               <button
                 onClick={() => setStep(step + 1)}
                 disabled={step === 1 && !skillLevel}
@@ -300,7 +284,7 @@ export function OnboardingFlow() {
             ) : (
               <button
                 onClick={handleSubmit}
-                disabled={!skillLevel || !fabricLength || likesDrop === null || isSubmitting}
+                disabled={!skillLevel || likesDrop === null || isSubmitting}
                 className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (

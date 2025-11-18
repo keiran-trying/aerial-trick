@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { FolderOpen, ChevronRight } from 'lucide-react'
+import { FolderOpen, ChevronRight, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface Collection {
@@ -12,6 +12,7 @@ interface Collection {
   icon: string | null
   tutorial_count?: number
   thumbnail_url?: string | null
+  updated_at?: string
 }
 
 export function CollectionsBrowser() {
@@ -23,13 +24,39 @@ export function CollectionsBrowser() {
     fetchCollections()
   }, [])
 
+  const handleDelete = async (collectionId: string, collectionName: string) => {
+    if (!confirm(`Are you sure you want to delete the "${collectionName}" collection?\n\nThis will NOT delete the tutorials, only the collection.`)) {
+      return
+    }
+
+    try {
+      // Delete the collection (tutorial_collections will be cascade deleted)
+      const { error } = await supabase
+        .from('collections')
+        .delete()
+        .eq('id', collectionId)
+
+      if (error) {
+        console.error('Error deleting collection:', error)
+        alert('Failed to delete collection. Please try again.')
+        return
+      }
+
+      alert(`Collection "${collectionName}" deleted successfully!`)
+      fetchCollections() // Refresh list
+    } catch (error) {
+      console.error('Error deleting collection:', error)
+      alert('An error occurred while deleting the collection.')
+    }
+  }
+
   const fetchCollections = async () => {
     try {
-      // Fetch all collections
+      // Fetch all collections, ordered by most recently updated first
       const { data: collectionsData } = await supabase
         .from('collections')
         .select('*')
-        .order('name')
+        .order('updated_at', { ascending: false })
 
       if (collectionsData) {
         // Get tutorial count and newest thumbnail for each collection
@@ -93,8 +120,21 @@ export function CollectionsBrowser() {
       {collections.length > 0 ? (
         <div className="space-y-3">
           {collections.map((collection) => (
-            <Link key={collection.id} href={`/collection/${collection.id}`}>
-              <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all group">
+            <div key={collection.id} className="relative bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all group">
+              {/* Delete Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleDelete(collection.id, collection.name)
+                }}
+                className="absolute top-2 right-2 z-10 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                title="Delete collection"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+
+              {/* Main Content - Clickable Link */}
+              <Link href={`/collection/${collection.id}`}>
                 <div className="flex items-center gap-0">
                   {/* Thumbnail */}
                   <div className="w-28 h-28 flex-shrink-0">
@@ -126,8 +166,8 @@ export function CollectionsBrowser() {
                   </div>
                   <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors flex-shrink-0 mr-4" />
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       ) : (
