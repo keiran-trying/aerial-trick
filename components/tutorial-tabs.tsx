@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { TutorialCard } from './tutorial-card'
+import { AIRecommendations } from './ai-recommendations'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/lib/types/database.types'
 
@@ -153,6 +154,10 @@ export function TutorialTabs() {
                   </div>
                 </div>
               )}
+              
+              {/* AI Recommendations */}
+              <AIRecommendations />
+              
               {intermediateTutorials.length > 0 && (
                 <div>
                   <h3 className="text-sm font-bold text-gray-900 mb-2 px-1">Intermediate</h3>
@@ -200,6 +205,10 @@ export function TutorialTabs() {
                   </div>
                 </div>
               )}
+              
+              {/* AI Recommendations between easier and harder tutorials */}
+              <AIRecommendations />
+              
               {twoStarTutorials.length > 0 && (
                 <div>
                   <h3 className="text-sm font-bold text-gray-900 mb-2 px-1 flex items-center gap-2">

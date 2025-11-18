@@ -28,9 +28,8 @@ export default async function HomePage() {
     <LayoutWrapper title="Aerial Trick" showSettings={true}>
       <div className="space-y-6 p-4">
         <DailyTrick />
-        <TutorialShuffle />
-        <AIRecommendations />
         <TutorialTabs />
+        <TutorialShuffle />
       </div>
     </LayoutWrapper>
   )
