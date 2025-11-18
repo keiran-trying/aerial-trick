@@ -10,19 +10,38 @@ type Tutorial = Database['public']['Tables']['tutorials']['Row']
 type DifficultyLevel = Database['public']['Tables']['tutorials']['Row']['difficulty']
 
 const tabs: { label: string; value: DifficultyLevel | 'all' }[] = [
-  { label: 'All', value: 'all' },
   { label: 'Easy', value: 'easy' },
   { label: 'Intermediate', value: 'intermediate' },
   { label: 'Advanced', value: 'advanced' },
   { label: 'Drop', value: 'drop' },
+  { label: 'All', value: 'all' },
 ]
 
 export function TutorialTabs() {
-  const [activeTab, setActiveTab] = useState<DifficultyLevel | 'all'>('all')
+  const [activeTab, setActiveTab] = useState<DifficultyLevel | 'all'>('easy')
   const [tutorials, setTutorials] = useState<Tutorial[]>([])
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+
+  // Load user's preferred skill level from onboarding
+  useEffect(() => {
+    async function loadUserPreferences() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: preferences } = await supabase
+          .from('user_preferences')
+          .select('skill_level')
+          .eq('user_id', user.id)
+          .single()
+        
+        if (preferences?.skill_level) {
+          setActiveTab(preferences.skill_level as DifficultyLevel)
+        }
+      }
+    }
+    loadUserPreferences()
+  }, [supabase])
 
   useEffect(() => {
     async function fetchTutorials() {

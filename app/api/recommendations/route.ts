@@ -27,6 +27,13 @@ export async function POST(request: NextRequest) {
       .eq('user_id', userId)
       .single()
 
+    // Get user preferences from onboarding
+    const { data: userPreferences } = await supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+
     // Get tutorials user has watched/completed
     const { data: completedTutorials } = await supabase
       .from('tutorials')
@@ -80,6 +87,9 @@ export async function POST(request: NextRequest) {
 
 USER PROFILE:
 - Current level: ${userLevel}
+- Preferred difficulty: ${userPreferences?.skill_level || 'not specified'}
+- Interests: ${userPreferences?.interests?.join(', ') || 'not specified'}
+- Likes drop tutorials: ${userPreferences?.likes_drop ? 'Yes' : 'No'}
 - Videos completed: ${userProgress?.videos_completed || 0}
 - Total minutes practiced: ${userProgress?.minutes_watched || 0}
 - Days practiced: ${userProgress?.days_practiced || 0}
@@ -94,9 +104,12 @@ ${availableTutorials.slice(0, 30).map((t, i) =>
 
 Please recommend 3-5 tutorials that would be perfect for this user's progression. Consider:
 1. Their current skill level and experience
-2. Natural progression from what they've completed
-3. Variety in difficulty and collections
-4. Building foundational skills before advanced moves
+2. Their stated preferences and interests (especially important!)
+3. Natural progression from what they've completed
+4. Match tutorials to their interests (e.g., if they like "static tricks", prioritize tutorials in Static collection)
+5. Respect their preference about drop tutorials
+6. Variety in difficulty and collections
+7. Building foundational skills before advanced moves
 
 Format your response as a JSON array with this structure:
 [

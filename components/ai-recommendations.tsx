@@ -135,7 +135,7 @@ export function AIRecommendations() {
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">AI Recommendations</h2>
+            <h2 className="text-lg font-bold text-white">Recommendations</h2>
             {userLevel && (
               <p className="text-xs text-white/80">{userLevel}</p>
             )}
@@ -180,7 +180,7 @@ export function AIRecommendations() {
       {/* Footer */}
       <div className="mt-4 pt-4 border-t border-white/20">
         <p className="text-xs text-white/80 text-center">
-          ✨ Personalized recommendations based on your progress and skill level
+          ✨ Watch more tutorials to help us learn what to recommend
         </p>
       </div>
     </div>

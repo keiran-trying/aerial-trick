@@ -125,27 +125,29 @@ export function TutorialShuffle() {
 
   return (
     <>
-      {/* Shuffle Card */}
+      {/* Shuffle Card - Compact */}
       <button
         onClick={handleShuffle}
         className="relative w-full rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] group"
       >
-        <div className="relative aspect-[4/3] bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500">
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full p-6 mb-4 group-hover:scale-110 transition-transform">
-              <Shuffle className="w-12 h-12" />
+        <div className="relative bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 p-6">
+          <div className="flex items-center gap-4 text-white">
+            <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 group-hover:scale-110 transition-transform flex-shrink-0">
+              <Shuffle className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-bold mb-2">Can't Decide?</h3>
-            <p className="text-sm text-white/90 text-center">
-              Let us pick a random tutorial for you!
-            </p>
+            <div className="flex-1 text-left">
+              <h3 className="text-xl font-bold mb-1">Can't Decide?</h3>
+              <p className="text-sm text-white/90">
+                Let us pick a random tutorial for you!
+              </p>
+            </div>
           </div>
           
           {/* Sparkle animation */}
-          <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 opacity-20 pointer-events-none">
             <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white rounded-full animate-ping"></div>
             <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
-            <div className="absolute bottom-1/4 left-3/4 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+            <div className="absolute bottom-1/4 right-1/3 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
           </div>
         </div>
       </button>
