@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     ) || []
 
     // Prepare data for OpenAI
-    const userLevel = determineUserLevel(userProgress, completedTutorials)
+    const userLevel = determineUserLevel(userProgress, completedTutorials || [])
     
     const prompt = `You are an aerial yoga instructor AI helping a student find their next tutorial.
 

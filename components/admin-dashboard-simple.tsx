@@ -71,7 +71,7 @@ export function AdminDashboardSimple() {
     setTitle(tutorial.title)
     setDescription(tutorial.description || '')
     setDifficulty(tutorial.difficulty)
-    setDifficultyStars(tutorial.difficulty_stars || 1)
+    setDifficultyStars((tutorial as any).difficulty_stars || 1)
     setEditingId(tutorial.id)
     
     // Fetch tutorial's collections
