@@ -11,6 +11,7 @@ interface Collection {
   description: string | null
   icon: string | null
   tutorial_count?: number
+  thumbnail_url?: string | null
 }
 
 export function CollectionsBrowser() {
@@ -31,22 +32,35 @@ export function CollectionsBrowser() {
         .order('name')
 
       if (collectionsData) {
-        // Get tutorial count for each collection
-        const collectionsWithCount = await Promise.all(
+        // Get tutorial count and newest thumbnail for each collection
+        const collectionsWithDetails = await Promise.all(
           collectionsData.map(async (collection) => {
+            // Get tutorial count
             const { count } = await supabase
               .from('tutorial_collections')
               .select('*', { count: 'exact', head: true })
               .eq('collection_id', collection.id)
 
+            // Get newest tutorial's thumbnail
+            const { data: newestTutorial } = await supabase
+              .from('tutorial_collections')
+              .select('tutorials(thumbnail_url, created_at)')
+              .eq('collection_id', collection.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single()
+
+            const thumbnailUrl = newestTutorial?.tutorials ? (newestTutorial.tutorials as any).thumbnail_url : null
+
             return {
               ...collection,
               tutorial_count: count || 0,
+              thumbnail_url: thumbnailUrl,
             }
           })
         )
 
-        setCollections(collectionsWithCount)
+        setCollections(collectionsWithDetails)
       }
     } catch (error) {
       console.error('Error fetching collections:', error)
@@ -80,12 +94,24 @@ export function CollectionsBrowser() {
         <div className="space-y-3">
           {collections.map((collection) => (
             <Link key={collection.id} href={`/collection/${collection.id}`}>
-              <div className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all group">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
-                    {collection.icon || '📁'}
+              <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all group">
+                <div className="flex items-center gap-0">
+                  {/* Thumbnail */}
+                  <div className="w-28 h-28 flex-shrink-0">
+                    {collection.thumbnail_url ? (
+                      <img
+                        src={collection.thumbnail_url}
+                        alt={collection.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-3xl">
+                        {collection.icon || '📁'}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 p-4">
                     <h3 className="font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors text-lg">
                       {collection.name}
                     </h3>
@@ -98,7 +124,7 @@ export function CollectionsBrowser() {
                       {collection.tutorial_count} {collection.tutorial_count === 1 ? 'tutorial' : 'tutorials'}
                     </p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors flex-shrink-0" />
+                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors flex-shrink-0 mr-4" />
                 </div>
               </div>
             </Link>

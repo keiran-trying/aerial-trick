@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   
   -- Onboarding answers
   skill_level TEXT CHECK (skill_level IN ('easy', 'intermediate', 'advanced')),
-  interests TEXT[] DEFAULT '{}', -- Array of interests: 'static', 'open_fabric', 'thigh_lock', etc.
+  interests TEXT[] DEFAULT '{}', -- Array of interests: 'open_fabric', 'single_strand', 'mermaid', 'skirt', 'pigeon', etc.
+  fabric_length TEXT CHECK (fabric_length IN ('long', 'short', 'both')),
   likes_drop BOOLEAN DEFAULT false,
   
   -- Timestamps

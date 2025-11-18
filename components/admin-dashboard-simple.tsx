@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Edit2, Trash2, Upload, X, Search } from 'lucide-react'
+import { Plus, Edit2, Trash2, Upload, X, Search, Tag } from 'lucide-react'
 import { difficultyColors } from '@/lib/utils'
 import { AdminDailyTrick } from './admin-daily-trick'
+import { AdminBulkTag } from './admin-bulk-tag'
 import type { Database } from '@/lib/types/database.types'
 
 type Tutorial = Database['public']['Tables']['tutorials']['Row']
@@ -14,6 +15,7 @@ export function AdminDashboardSimple() {
   const [tutorials, setTutorials] = useState<Tutorial[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [showBulkTag, setShowBulkTag] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<string>('')
@@ -470,15 +472,24 @@ export function AdminDashboardSimple() {
         </div>
       )}
 
-      {/* Add New Button */}
+      {/* Action Buttons */}
       {!showForm && (
-        <button
-          onClick={() => setShowForm(true)}
-          className="w-full py-4 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Add New Tutorial
-        </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button
+            onClick={() => setShowBulkTag(true)}
+            className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+          >
+            <Tag className="w-5 h-5" />
+            Bulk Tag Tutorials
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="w-full py-4 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add New Tutorial
+          </button>
+        </div>
       )}
 
       {/* Tutorial Form */}
@@ -810,6 +821,16 @@ export function AdminDashboardSimple() {
           </div>
         )
       })()}
+
+      {/* Bulk Tag Modal */}
+      {showBulkTag && (
+        <AdminBulkTag
+          onClose={() => {
+            setShowBulkTag(false)
+            fetchTutorials() // Refresh tutorials after tagging
+          }}
+        />
+      )}
     </div>
   )
 }
