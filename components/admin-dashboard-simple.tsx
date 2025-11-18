@@ -166,6 +166,15 @@ export function AdminDashboardSimple() {
       .join(' ')
   }
 
+  // Helper function to sanitize filename (remove invalid characters for storage)
+  const sanitizeFilename = (str: string) => {
+    return str
+      .replace(/[^a-zA-Z0-9\s\-_]/g, '') // Remove all special characters except spaces, dashes, underscores
+      .replace(/\s+/g, '-') // Replace spaces with dashes
+      .replace(/-+/g, '-') // Replace multiple dashes with single dash
+      .toLowerCase()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isSubmitting) return
@@ -206,7 +215,8 @@ export function AdminDashboardSimple() {
         }
 
         const videoExt = videoFile.name.split('.').pop()
-        const videoFileName = `${Date.now()}-${title.replace(/\s+/g, '-')}.${videoExt}`
+        const safeTitle = sanitizeFilename(title)
+        const videoFileName = `${Date.now()}-${safeTitle}.${videoExt}`
         
         const fileSizeMB = (videoFile.size / (1024 * 1024)).toFixed(1)
         setUploadProgress(`Uploading video (${fileSizeMB} MB)... Please wait`)
@@ -252,7 +262,8 @@ export function AdminDashboardSimple() {
         setUploadProgress('Uploading thumbnail...')
         
         const thumbExt = thumbnailFile.name.split('.').pop()
-        const thumbFileName = `thumb-${Date.now()}-${title.replace(/\s+/g, '-')}.${thumbExt}`
+        const safeTitle = sanitizeFilename(title)
+        const thumbFileName = `thumb-${Date.now()}-${safeTitle}.${thumbExt}`
         
         try {
           const { data: thumbData, error: thumbError } = await supabase.storage
@@ -278,7 +289,8 @@ export function AdminDashboardSimple() {
         try {
           const frameBlob = await extractVideoFrame(videoFile)
           
-          const thumbFileName = `thumb-${Date.now()}-${title.replace(/\s+/g, '-')}.jpg`
+          const safeTitle = sanitizeFilename(title)
+          const thumbFileName = `thumb-${Date.now()}-${safeTitle}.jpg`
           const { data: thumbData, error: thumbError } = await supabase.storage
             .from('tutorials')
             .upload(thumbFileName, frameBlob)
