@@ -505,88 +505,7 @@ export function AdminDashboardSimple() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-bold text-gray-900 mb-1">Title *</label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
-                placeholder="E.g., Basic Inversion for Beginners"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-900 mb-1">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-24 resize-none text-gray-900"
-                placeholder="Describe what students will learn..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-900 mb-1">Difficulty *</label>
-              <select
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="easy">Easy</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-                <option value="drop">Drop</option>
-              </select>
-            </div>
-
-            {/* Difficulty Stars Sub-level */}
-            <div>
-              <label className="block text-sm font-bold text-gray-900 mb-1">
-                Sub-Level *
-              </label>
-              <div className="flex gap-3">
-                {[1, 2].map((stars) => (
-                  <button
-                    key={stars}
-                    type="button"
-                    onClick={() => setDifficultyStars(stars)}
-                    className={`flex-1 px-6 py-4 border-2 rounded-lg font-semibold transition-all ${
-                      difficultyStars === stars
-                        ? 'border-purple-500 bg-purple-50 text-purple-700'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300'
-                    }`}
-                  >
-                    <div className="text-xl mb-1">{'⭐️'.repeat(stars)}</div>
-                    <div className="text-sm font-bold">
-                      {stars === 1 ? 'Easier' : 'Harder'}
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Choose the sub-level within the difficulty category
-              </p>
-            </div>
-
-            {/* Simple Collections Input */}
-            <div>
-              <label className="block text-sm font-bold text-gray-900 mb-1">
-                Collections (optional)
-              </label>
-              <input
-                type="text"
-                value={collectionsInput}
-                onChange={(e) => setCollectionsInput(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
-                placeholder="E.g., Beginner Series, 30-Day Challenge"
-              />
-              <p className="text-xs text-gray-700 mt-1 font-medium">
-                Separate multiple collections with commas. Collections will be created automatically.
-              </p>
-            </div>
-
+            {/* VIDEO - First */}
             <div>
               <label className="block text-sm font-bold text-gray-900 mb-2">
                 Video {!editingId && '*'}
@@ -629,6 +548,91 @@ export function AdminDashboardSimple() {
                   className="hidden"
                 />
               </label>
+            </div>
+
+            {/* TITLE - Third */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-1">Title *</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                placeholder="E.g., Basic Inversion for Beginners"
+              />
+            </div>
+
+            {/* DESCRIPTION - Fourth */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-1">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-24 resize-none text-gray-900"
+                placeholder="Describe what students will learn..."
+              />
+            </div>
+
+            {/* DIFFICULTY - Fifth */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-1">Difficulty *</label>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="easy">Easy</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+                <option value="drop">Drop</option>
+              </select>
+            </div>
+
+            {/* SUB-LEVEL - Sixth */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-1">
+                Sub-Level *
+              </label>
+              <div className="flex gap-3">
+                {[1, 2].map((stars) => (
+                  <button
+                    key={stars}
+                    type="button"
+                    onClick={() => setDifficultyStars(stars)}
+                    className={`flex-1 px-6 py-4 border-2 rounded-lg font-semibold transition-all ${
+                      difficultyStars === stars
+                        ? 'border-purple-500 bg-purple-50 text-purple-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300'
+                    }`}
+                  >
+                    <div className="text-xl mb-1">{'⭐️'.repeat(stars)}</div>
+                    <div className="text-sm font-bold">
+                      {stars === 1 ? 'Easier' : 'Harder'}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-600 mt-1">
+                Choose the sub-level within the difficulty category
+              </p>
+            </div>
+
+            {/* COLLECTIONS - Seventh */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-1">
+                Collections (optional)
+              </label>
+              <input
+                type="text"
+                value={collectionsInput}
+                onChange={(e) => setCollectionsInput(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                placeholder="E.g., Open Fabric, Mermaid, Beginner Series"
+              />
+              <p className="text-xs text-gray-700 mt-1 font-medium">
+                Separate multiple collections with commas. Collections will be created automatically.
+              </p>
             </div>
 
             {/* Upload Progress */}

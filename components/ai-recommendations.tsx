@@ -89,6 +89,11 @@ export function AIRecommendations() {
     )
   }
 
+  // If OpenAI is not available, don't show the component at all
+  if (error && error.includes('unavailable')) {
+    return null // Hide completely if AI is unavailable
+  }
+
   if (error) {
     return (
       <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 shadow-lg">
@@ -97,7 +102,7 @@ export function AIRecommendations() {
             <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-lg font-bold text-white">AI Recommendations</h2>
+            <h2 className="text-lg font-bold text-white">Recommendations</h2>
           </div>
         </div>
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-white text-sm">
