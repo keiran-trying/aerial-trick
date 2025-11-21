@@ -1,6 +1,6 @@
 # Privacy Policy for Aerial Tricks
 
-**Last Updated:** November 21, 2024
+**Last Updated:** November 22, 2024
 
 ## Introduction
 
@@ -219,4 +219,4 @@ Thank you for trusting Aerial Tricks with your aerial yoga journey! 🧘‍♀�
 
 ---
 
-*This Privacy Policy was last updated on November 21, 2024 and is effective immediately.*
+*This Privacy Policy was last updated on November 22, 2024 and is effective immediately.*
