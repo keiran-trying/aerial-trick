@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
   //   - Auth will work via Capacitor storage (no middleware needed)
   //   - Run: npm run build && npx cap sync
   //
-  output: 'export',  // ACTIVE FOR MOBILE BUILDS
+  // output: 'export',  // COMMENTED OUT FOR WEB DEPLOYMENT (Vercel/production)
   
   // Skip ESLint during builds for now
   eslint: {
