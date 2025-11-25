@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { TutorialCard } from './tutorial-card'
 import { AIRecommendations } from './ai-recommendations'
+import { TutorialShuffle } from './tutorial-shuffle'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/lib/types/database.types'
 
@@ -11,11 +12,11 @@ type Tutorial = Database['public']['Tables']['tutorials']['Row']
 type DifficultyLevel = Database['public']['Tables']['tutorials']['Row']['difficulty']
 
 const tabs: { label: string; value: DifficultyLevel | 'all' }[] = [
-  { label: 'Easy', value: 'easy' },
-  { label: 'Intermediate', value: 'intermediate' },
-  { label: 'Advanced', value: 'advanced' },
-  { label: 'Drop', value: 'drop' },
   { label: 'All', value: 'all' },
+  { label: 'Easy', value: 'easy' },
+  { label: 'Med', value: 'intermediate' },
+  { label: 'Pro', value: 'advanced' },
+  { label: 'Drop', value: 'drop' },
 ]
 
 export function TutorialTabs() {
@@ -97,13 +98,13 @@ export function TutorialTabs() {
   return (
     <div className="space-y-4">
       {/* Tab Navigation */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-2 justify-between">
         {tabs.map((tab) => (
           <button
             key={tab.value}
             onClick={() => setActiveTab(tab.value)}
             className={cn(
-              'px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap transition-all',
+              'flex-1 px-2 py-2 rounded-full font-medium text-xs transition-all',
               activeTab === tab.value
                 ? 'bg-purple-600 text-white shadow-md'
                 : 'bg-white text-gray-700 hover:bg-gray-100'

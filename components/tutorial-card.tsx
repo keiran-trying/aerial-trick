@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { Heart, Clock, MessageCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn, difficultyColors, formatDuration } from '@/lib/utils'
+import { TutorialDetailModal } from './tutorial-detail-modal'
 import type { Database } from '@/lib/types/database.types'
 
 type Tutorial = Database['public']['Tables']['tutorials']['Row']
@@ -20,10 +20,12 @@ interface TutorialCardProps {
 export function TutorialCard({ tutorial, featured = false, isFavorite: initialFavorite = false, compact = false }: TutorialCardProps) {
   const [isFavorite, setIsFavorite] = useState(initialFavorite)
   const [isToggling, setIsToggling] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const supabase = createClient()
 
   const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation() // Stop event from triggering parent button
     if (isToggling) return
 
     setIsToggling(true)
@@ -59,8 +61,12 @@ export function TutorialCard({ tutorial, featured = false, isFavorite: initialFa
 
   if (compact) {
     return (
-      <Link href={`/tutorial/${tutorial.id}`}>
-        <div className="relative rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+      <>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="w-full text-left"
+        >
+          <div className="relative rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
           {/* Compact Thumbnail - Landscape */}
           <div className="relative aspect-[4/3] bg-gradient-to-br from-amber-100 to-amber-200">
             {tutorial.thumbnail_url ? (
@@ -121,12 +127,22 @@ export function TutorialCard({ tutorial, featured = false, isFavorite: initialFa
             </h3>
           </div>
         </div>
-      </Link>
+        </button>
+        <TutorialDetailModal 
+          tutorial={tutorial}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      </>
     )
   }
 
   return (
-    <Link href={`/tutorial/${tutorial.id}`}>
+    <>
+      <button 
+        onClick={() => setIsModalOpen(true)}
+        className="w-full text-left"
+      >
       <div className={cn(
         'relative rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]',
         featured ? 'bg-white/95 backdrop-blur' : 'bg-white'
@@ -211,7 +227,13 @@ export function TutorialCard({ tutorial, featured = false, isFavorite: initialFa
           </div>
         </div>
       </div>
-    </Link>
+      </button>
+      <TutorialDetailModal 
+        tutorial={tutorial}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </>
   )
 }
 

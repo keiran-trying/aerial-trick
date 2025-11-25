@@ -1,7 +1,7 @@
 {
-  "name": "aerial-trick",
+  "name": "aerial-tricks",
   "version": "1.0.0",
-  "description": "A mobile-first aerial yoga learning platform",
+  "description": "Learn aerial yoga tricks with video tutorials and progress tracking",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -16,6 +16,7 @@
     "@capacitor/core": "^7.4.4",
     "@capacitor/filesystem": "^7.1.4",
     "@capacitor/ios": "^7.4.4",
+    "@capacitor/preferences": "^7.0.2",
     "@capacitor/splash-screen": "^7.0.3",
     "@capacitor/status-bar": "^7.0.3",
     "@radix-ui/react-dialog": "^1.1.2",
@@ -33,7 +34,8 @@
     "openai": "^4.77.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^2.5.5"
+    "tailwind-merge": "^2.5.5",
+    "tus-js-client": "^4.3.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",

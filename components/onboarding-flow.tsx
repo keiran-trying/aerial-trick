@@ -110,7 +110,7 @@ export function OnboardingFlow() {
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white">
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="w-8 h-8" />
-            <h1 className="text-2xl font-bold">Welcome to Aerial Trick!</h1>
+            <h1 className="text-2xl font-bold">Welcome to Aerial Tricks!</h1>
           </div>
           <p className="text-white/90 text-sm">
             Let's personalize your experience

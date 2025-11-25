@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { FolderOpen, ChevronRight, Trash2 } from 'lucide-react'
-import Link from 'next/link'
+import { CollectionDetailModal } from './collection-detail-modal'
 
 interface Collection {
   id: string
@@ -18,6 +18,7 @@ interface Collection {
 export function CollectionsBrowser() {
   const [collections, setCollections] = useState<Collection[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -109,6 +110,7 @@ export function CollectionsBrowser() {
   }
 
   return (
+    <>
     <div className="p-4 space-y-4">
       <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 text-white shadow-lg">
         <h2 className="text-2xl font-bold mb-2">📚 Collections</h2>
@@ -133,9 +135,11 @@ export function CollectionsBrowser() {
                 <Trash2 className="w-4 h-4" />
               </button>
 
-              {/* Main Content - Clickable Link */}
-              <Link href={`/collection/${collection.id}`}>
-                <div className="flex items-center gap-0">
+                {/* Main Content - Now Clickable! */}
+                <button
+                  onClick={() => setSelectedCollection(collection)}
+                  className="w-full flex items-center gap-0 cursor-pointer text-left hover:bg-gray-50 transition-colors"
+                >
                   {/* Thumbnail */}
                   <div className="w-28 h-28 flex-shrink-0">
                     {collection.thumbnail_url ? (
@@ -163,10 +167,12 @@ export function CollectionsBrowser() {
                     <p className="text-sm text-gray-700 font-semibold">
                       {collection.tutorial_count} {collection.tutorial_count === 1 ? 'tutorial' : 'tutorials'}
                     </p>
+                    <p className="text-xs text-purple-600 mt-1 font-medium">
+                      Tap to view tutorials →
+                    </p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors flex-shrink-0 mr-4" />
-                </div>
-              </Link>
+                  <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 mr-4" />
+                </button>
             </div>
           ))}
         </div>
@@ -178,6 +184,15 @@ export function CollectionsBrowser() {
         </div>
       )}
     </div>
+
+      {/* Collection Detail Modal */}
+      {selectedCollection && (
+        <CollectionDetailModal
+          collection={selectedCollection}
+          onClose={() => setSelectedCollection(null)}
+        />
+      )}
+    </>
   )
 }
 

@@ -44,7 +44,7 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <LayoutWrapper title="Aerial Trick" showSettings={true}>
+      <LayoutWrapper title="Aerial Tricks" showSettings={true}>
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
         </div>
@@ -56,8 +56,8 @@ export default function HomePage() {
     <LayoutWrapper title="Aerial Trick" showSettings={true}>
       <div className="space-y-6 p-4">
         <DailyTrick />
-        <TutorialTabs />
         <TutorialShuffle />
+        <TutorialTabs />
       </div>
     </LayoutWrapper>
   )

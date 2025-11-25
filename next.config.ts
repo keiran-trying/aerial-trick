@@ -1,9 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Note: Static export is needed for Capacitor mobile builds
-  // For development, this can be commented out
-  output: 'export',
+  // IMPORTANT: Toggle based on your use case
+  // 
+  // For DEVELOPMENT (localhost with middleware & auth):
+  //   - Keep output: 'export' COMMENTED OUT (as shown below)
+  //   - This enables middleware for proper auth session management
+  //
+  // For MOBILE BUILD (Capacitor):
+  //   - UNCOMMENT output: 'export' 
+  //   - Auth will work via Capacitor storage (no middleware needed)
+  //   - Run: npm run build && npx cap sync
+  //
+  output: 'export',  // ACTIVE FOR MOBILE BUILDS
   
   // Skip ESLint during builds for now
   eslint: {

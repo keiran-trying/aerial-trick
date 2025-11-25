@@ -1,4 +1,4 @@
-# 🧘‍♀️ Aerial Trick - Aerial Yoga Learning Platform
+# 🧘‍♀️ Aerial Tricks - Aerial Yoga Learning Platform
 
 A beautiful, modern mobile-first web application for learning aerial yoga. Track your progress, connect with the community, and master aerial yoga tricks at your own pace.
 

@@ -26,12 +26,34 @@ export function ProgressDashboard() {
 
   const fetchProgressData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
+      // First, try to get the session (this loads from storage)
+      let session = null
+      let user = null
+      
+      // Try multiple times to get session (mobile storage can be slow)
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const { data: { session: currentSession } } = await supabase.auth.getSession()
+        if (currentSession) {
+          session = currentSession
+          break
+        }
+        // Wait a bit before retrying (longer wait for mobile)
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+
+      // Now try to get the user
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+      
+      // If no user after all retries, show login message
+      if (authError || !authUser) {
+        console.log('No authenticated user found after retries', authError)
+        setLoading(false)
         return
       }
 
+      user = authUser
+
+      // User is authenticated, fetch their data
       const [progressRes, photosRes, achievementsRes] = await Promise.all([
         supabase.from('progress').select('*').eq('user_id', user.id).single(),
         supabase.from('progress_photos').select('*').eq('user_id', user.id).single(),
@@ -90,6 +112,25 @@ export function ProgressDashboard() {
               <div key={i} className="h-20 bg-gray-200 rounded"></div>
             ))}
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // If no progress data after loading, show login prompt
+  if (!progress) {
+    return (
+      <div className="p-4">
+        <div className="bg-white rounded-xl p-8 shadow-md text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Please Log In</h2>
+          <p className="text-gray-600 mb-6">You need to be logged in to view your progress.</p>
+          <button
+            onClick={() => router.push('/auth/login')}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+          >
+            Go to Login
+          </button>
         </div>
       </div>
     )

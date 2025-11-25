@@ -7,6 +7,7 @@ import { difficultyColors } from '@/lib/utils'
 import { AdminDailyTrick } from './admin-daily-trick'
 import { AdminBulkTag } from './admin-bulk-tag'
 import type { Database } from '@/lib/types/database.types'
+import * as tus from 'tus-js-client'
 
 type Tutorial = Database['public']['Tables']['tutorials']['Row']
 type DifficultyLevel = Database['public']['Tables']['tutorials']['Row']['difficulty']
@@ -177,6 +178,78 @@ export function AdminDashboardSimple() {
       .toLowerCase()
   }
 
+  // Helper function to upload files with automatic resumable upload for large files
+  const uploadFile = async (
+    file: File, 
+    fileName: string, 
+    onProgress?: (percent: number) => void
+  ): Promise<string> => {
+    const FILE_SIZE_LIMIT = 6 * 1024 * 1024 // 6MB
+    
+    if (file.size > FILE_SIZE_LIMIT) {
+      // Use resumable upload for large files
+      return await new Promise<string>(async (resolve, reject) => {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) {
+          reject(new Error('Not authenticated'))
+          return
+        }
+
+        const upload = new tus.Upload(file, {
+          endpoint: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/upload/resumable`,
+          retryDelays: [0, 3000, 5000, 10000, 20000],
+          headers: {
+            authorization: `Bearer ${session.access_token}`,
+            'x-upsert': 'false',
+          },
+          uploadDataDuringCreation: true,
+          removeFingerprintOnSuccess: true,
+          metadata: {
+            bucketName: 'tutorials',
+            objectName: fileName,
+            contentType: file.type || 'application/octet-stream',
+            cacheControl: '3600',
+          },
+          chunkSize: 6 * 1024 * 1024,
+          onError: (error) => {
+            console.error('Resumable upload error:', error)
+            reject(error)
+          },
+          onProgress: (bytesUploaded, bytesTotal) => {
+            if (onProgress) {
+              const percentage = (bytesUploaded / bytesTotal) * 100
+              onProgress(percentage)
+            }
+          },
+          onSuccess: () => {
+            resolve(fileName)
+          },
+        })
+
+        upload.findPreviousUploads().then((previousUploads) => {
+          if (previousUploads.length) {
+            upload.resumeFromPreviousUpload(previousUploads[0])
+          }
+          upload.start()
+        })
+      })
+    } else {
+      // Use standard upload for smaller files
+      const { data, error } = await supabase.storage
+        .from('tutorials')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      return data.path
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isSubmitting) return
@@ -225,37 +298,28 @@ export function AdminDashboardSimple() {
         
         try {
           console.log('Uploading video to Supabase storage...')
-          const { data: videoData, error: videoError } = await supabase.storage
-            .from('tutorials')
-            .upload(videoFileName, videoFile, {
-              cacheControl: '3600',
-              upsert: false
-            })
+          console.log('File name:', videoFileName)
+          console.log('File size:', videoFile.size, `(${fileSizeMB} MB)`)
 
-          if (videoError) {
-            console.error('Video upload error details:', {
-              message: videoError.message,
-              statusCode: videoError.statusCode,
-              error: videoError
-            })
-            
-            if (videoError.message.includes('fetch') || videoError.message.includes('Failed to fetch')) {
-              throw new Error('Storage upload failed. Please make sure:\n1. You ran the storage policies SQL script in Supabase\n2. The "tutorials" storage bucket exists and is PUBLIC\n3. You are logged in')
-            }
-            
-            throw new Error(`Failed to upload video: ${videoError.message}`)
+          if (videoFile.size > 6 * 1024 * 1024) {
+            console.log('Using resumable upload for large file...')
+            setUploadProgress(`Uploading large video (${fileSizeMB} MB)... This may take a few minutes`)
           }
+          
+          const uploadPath = await uploadFile(videoFile, videoFileName, (percent) => {
+            setUploadProgress(`Uploading: ${percent.toFixed(0)}% (${fileSizeMB} MB)`)
+          })
 
-          console.log('Video uploaded successfully:', videoData)
+          console.log('Video uploaded successfully!')
           const { data: videoUrlData } = supabase.storage
             .from('tutorials')
-            .getPublicUrl(videoData.path)
+            .getPublicUrl(uploadPath)
 
           videoUrl = videoUrlData.publicUrl
           console.log('Video URL:', videoUrl)
         } catch (uploadError: any) {
           console.error('Video upload error:', uploadError)
-          throw uploadError
+          throw new Error(`Failed to upload video: ${uploadError.message || 'Unknown error'}`)
         }
       }
 
@@ -268,20 +332,14 @@ export function AdminDashboardSimple() {
         const thumbFileName = `thumb-${Date.now()}-${safeTitle}.${thumbExt}`
         
         try {
-          const { data: thumbData, error: thumbError } = await supabase.storage
-            .from('tutorials')
-            .upload(thumbFileName, thumbnailFile)
-
-          if (thumbError) {
-            console.error('Thumbnail upload error:', thumbError)
-            throw new Error(`Failed to upload thumbnail: ${thumbError.message}`)
-          }
+          const uploadPath = await uploadFile(thumbnailFile, thumbFileName)
 
           const { data: thumbUrlData } = supabase.storage
             .from('tutorials')
-            .getPublicUrl(thumbData.path)
+            .getPublicUrl(uploadPath)
 
           thumbnailUrl = thumbUrlData.publicUrl
+          console.log('Thumbnail uploaded successfully!')
         } catch (uploadError: any) {
           console.error('Thumbnail upload error:', uploadError)
           throw new Error(`Thumbnail upload failed: ${uploadError.message || 'Please check storage permissions.'}`)
@@ -293,17 +351,14 @@ export function AdminDashboardSimple() {
           
           const safeTitle = sanitizeFilename(title)
           const thumbFileName = `thumb-${Date.now()}-${safeTitle}.jpg`
-          const { data: thumbData, error: thumbError } = await supabase.storage
-            .from('tutorials')
-            .upload(thumbFileName, frameBlob)
 
-          if (!thumbError && thumbData) {
+          const uploadPath = await uploadFile(frameBlob as File, thumbFileName)
             const { data: thumbUrlData } = supabase.storage
               .from('tutorials')
-              .getPublicUrl(thumbData.path)
+            .getPublicUrl(uploadPath)
 
             thumbnailUrl = thumbUrlData.publicUrl
-          }
+          console.log('Auto-generated thumbnail uploaded successfully!')
         } catch (error) {
           console.error('Error generating thumbnail:', error)
         }

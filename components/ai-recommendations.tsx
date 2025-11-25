@@ -31,33 +31,153 @@ export function AIRecommendations() {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
-        setError('Please log in to see recommendations')
+        // Show fallback recommendations for non-logged-in users
+        const { data: tutorials } = await supabase
+          .from('tutorials')
+          .select('*')
+          .limit(3)
+          .order('created_at', { ascending: false })
+        
+        const tutorialsWithReason = (tutorials || []).map((tutorial, index) => ({
+          ...tutorial,
+          aiReason: index === 0 ? '🌟 Most recently added tutorial' : 
+                    index === 1 ? '🎯 Popular with beginners' : 
+                    '💪 Great for skill building'
+        }))
+        
+        setRecommendations(tutorialsWithReason)
+        setUserLevel('Guest Mode')
         setLoading(false)
         return
       }
 
-      // Call recommendation API
-      const response = await fetch('/api/recommendations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: user.id }),
+      // Get user preferences and favorites
+      const { data: preferences } = await supabase
+        .from('user_preferences')
+        .select('skill_level')
+        .eq('user_id', user.id)
+        .single()
+
+      const skillLevel = preferences?.skill_level || 'easy'
+      
+      // Get user's completed tutorials
+      const { data: progress } = await supabase
+        .from('user_progress')
+        .select('tutorial_id')
+        .eq('user_id', user.id)
+        .eq('completed', true)
+
+      const completedIds = progress?.map(p => p.tutorial_id) || []
+
+      // Get user's favorites to understand preferences
+      const { data: favorites } = await supabase
+        .from('favorites')
+        .select('tutorials(collections:tutorial_collections(collection:collections(name)))')
+        .eq('user_id', user.id)
+
+      // Determine appropriate difficulty level based on user's skill
+      let targetDifficulty = skillLevel
+      let targetStars = [1] // Default to 1 star
+      
+      // Smart level progression:
+      // Beginners (easy): Only easy 1-star
+      // Intermediate: Int 1-star, some easy 2-star
+      // Advanced: Adv 1-star, Int 2-star, some drop
+      if (skillLevel === 'easy') {
+        targetDifficulty = 'easy'
+        targetStars = [1] // ONLY 1-star for beginners
+      } else if (skillLevel === 'intermediate') {
+        // Show intermediate 1-star primarily, some easy 2-star
+        targetDifficulty = 'intermediate'
+        targetStars = [1, 2]
+      } else if (skillLevel === 'advanced') {
+        // Show advanced tricks and some drops
+        targetDifficulty = 'advanced'
+        targetStars = [1, 2]
+      }
+
+      // Get recommended tutorials based on skill level
+      let query = supabase
+        .from('tutorials')
+        .select('*')
+        .eq('difficulty', targetDifficulty)
+        .in('difficulty_stars', targetStars)
+        .limit(5)
+
+      if (completedIds.length > 0) {
+        query = query.not('id', 'in', `(${completedIds.join(',')})`)
+      }
+
+      const { data: tutorials } = await query.order('created_at', { ascending: false })
+
+      // If no tutorials at exact level, try easier level
+      if (!tutorials || tutorials.length === 0) {
+        const fallbackLevel = skillLevel === 'intermediate' ? 'easy' : 'intermediate'
+        const { data: fallbackTutorials } = await supabase
+          .from('tutorials')
+          .select('*')
+          .eq('difficulty', fallbackLevel)
+          .eq('difficulty_stars', 1)
+          .limit(3)
+          .order('created_at', { ascending: false })
+        
+        const tutorialsWithReason = (fallbackTutorials || []).map((tutorial) => ({
+          ...tutorial,
+          aiReason: '🎯 Master the basics first, then level up!'
+        }))
+        
+        setRecommendations(tutorialsWithReason)
+        setUserLevel(`${skillLevel.charAt(0).toUpperCase() + skillLevel.slice(1)} Level`)
+        setLoading(false)
+        return
+      }
+
+      // Add AI-like reasons based on user behavior
+      const tutorialsWithReason = tutorials.slice(0, 3).map((tutorial, index) => {
+        let reason = ''
+        
+        if (skillLevel === 'easy') {
+          reason = index === 0 ? '🌱 Perfect starter trick for beginners' :
+                   index === 1 ? '💚 Build your foundation safely' :
+                   '✨ Easy to learn, fun to master'
+        } else if (skillLevel === 'intermediate') {
+          reason = index === 0 ? '🎯 Level up your skills' :
+                   index === 1 ? '💪 Challenge yourself with this' :
+                   '🌟 Next step in your progression'
+        } else {
+          reason = index === 0 ? '🔥 Advanced technique for you' :
+                   index === 1 ? '💎 Master-level move' :
+                   '🚀 Push your limits'
+        }
+        
+        return {
+          ...tutorial,
+          aiReason: reason
+        }
       })
 
-      const data = await response.json()
-
-      if (data.success) {
-        setRecommendations(data.recommendations || [])
-        setUserLevel(data.userLevel || '')
-      } else if (data.fallback) {
-        setError('AI recommendations unavailable. Try manual browsing!')
-      } else {
-        setError(data.error || 'Failed to load recommendations')
-      }
+      setRecommendations(tutorialsWithReason)
+      setUserLevel(`${skillLevel.charAt(0).toUpperCase() + skillLevel.slice(1)} Level`)
     } catch (err: any) {
       console.error('Error fetching recommendations:', err)
+      // Show fallback on error
+      try {
+        const { data: tutorials } = await supabase
+          .from('tutorials')
+          .select('*')
+          .limit(3)
+          .order('created_at', { ascending: false })
+        
+        const tutorialsWithReason = (tutorials || []).map((tutorial) => ({
+          ...tutorial,
+          aiReason: '🎯 Recommended for you'
+        }))
+        
+        setRecommendations(tutorialsWithReason)
+        setUserLevel('Recommendations')
+      } catch {
       setError('Unable to load recommendations')
+      }
     } finally {
       setLoading(false)
       setIsRefreshing(false)

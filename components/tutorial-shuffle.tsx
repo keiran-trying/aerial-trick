@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Shuffle, X } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { TutorialDetailModal } from './tutorial-detail-modal'
 import type { Database } from '@/lib/types/database.types'
 
 type Tutorial = Database['public']['Tables']['tutorials']['Row']
@@ -12,12 +12,12 @@ export function TutorialShuffle() {
   const [tutorials, setTutorials] = useState<Tutorial[]>([])
   const [isShuffling, setIsShuffling] = useState(false)
   const [showModal, setShowModal] = useState(false)
+  const [showTutorialModal, setShowTutorialModal] = useState(false)
   const [currentTutorial, setCurrentTutorial] = useState<Tutorial | null>(null)
   const [finalTutorial, setFinalTutorial] = useState<Tutorial | null>(null)
   const shuffleIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const supabase = createClient()
-  const router = useRouter()
 
   useEffect(() => {
     async function fetchTutorials() {
@@ -99,7 +99,8 @@ export function TutorialShuffle() {
 
   const handleGoToTutorial = () => {
     if (finalTutorial) {
-      router.push(`/tutorial/${finalTutorial.id}`)
+      setShowModal(false)
+      setShowTutorialModal(true)
     }
   }
 
@@ -125,30 +126,36 @@ export function TutorialShuffle() {
 
   return (
     <>
-      {/* Shuffle Card - Compact */}
+      {/* Shuffle Card - Modern & Delicate */}
       <button
         onClick={handleShuffle}
-        className="relative w-full rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] group"
+        className="relative w-full rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 ease-out transform hover:scale-[1.02] active:scale-[0.98] group"
       >
-        <div className="relative bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 p-6">
+        <div className="relative bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-6">
           <div className="flex items-center gap-4 text-white">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 group-hover:scale-110 transition-transform flex-shrink-0">
-              <Shuffle className="w-8 h-8" />
+            <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-4 group-hover:rotate-12 transition-all duration-500 ease-out flex-shrink-0">
+              <Shuffle className="w-8 h-8 group-hover:scale-110 transition-transform duration-500" />
+              {/* Ripple effect */}
+              <div className="absolute inset-0 rounded-full bg-white/30 opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-all duration-700 ease-out"></div>
             </div>
             <div className="flex-1 text-left">
-              <h3 className="text-xl font-bold mb-1">Can't Decide?</h3>
-              <p className="text-sm text-white/90">
+              <h3 className="text-xl font-bold mb-1 group-hover:translate-x-1 transition-transform duration-300">Can't Decide?</h3>
+              <p className="text-sm text-white/90 group-hover:translate-x-1 transition-transform duration-300 delay-75">
                 Let us pick a random tutorial for you!
               </p>
             </div>
           </div>
           
-          {/* Sparkle animation */}
-          <div className="absolute inset-0 opacity-20 pointer-events-none">
+          {/* Modern sparkle animations */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-700 pointer-events-none">
             <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white rounded-full animate-ping"></div>
-            <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
-            <div className="absolute bottom-1/4 right-1/3 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+            <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDelay: '0.3s' }}></div>
+            <div className="absolute bottom-1/4 right-1/3 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDelay: '0.6s' }}></div>
+            <div className="absolute top-1/2 left-3/4 w-1 h-1 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.9s' }}></div>
           </div>
+          
+          {/* Gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         </div>
       </button>
 
@@ -190,11 +197,16 @@ export function TutorialShuffle() {
                     </div>
                   )}
                   
-                  {/* Shuffling Overlay */}
+                  {/* Modern Shuffling Overlay */}
                   {isShuffling && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center">
-                      <div className="bg-white/90 backdrop-blur-sm rounded-full p-6 animate-spin">
-                        <Shuffle className="w-10 h-10 text-purple-600" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-300">
+                      <div className="relative">
+                        {/* Outer ring */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full animate-ping opacity-75"></div>
+                        {/* Main icon */}
+                        <div className="relative bg-white/95 backdrop-blur-md rounded-full p-6 shadow-2xl animate-spin" style={{ animationDuration: '2s' }}>
+                          <Shuffle className="w-10 h-10 text-transparent bg-clip-text bg-gradient-to-br from-purple-600 to-pink-600" />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -249,6 +261,15 @@ export function TutorialShuffle() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Tutorial Detail Modal */}
+      {finalTutorial && (
+        <TutorialDetailModal 
+          tutorial={finalTutorial}
+          isOpen={showTutorialModal}
+          onClose={() => setShowTutorialModal(false)}
+        />
       )}
     </>
   )

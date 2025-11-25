@@ -84,6 +84,7 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
   const handleVideoEnd = async () => {
     if (hasCompletedVideo) return
     
+    try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -93,11 +94,32 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
     const points = calculatePoints(tutorial.difficulty, tutorial.duration_minutes || 0)
 
     // Update user progress
-    const { data: progressData } = await supabase
+      const { data: progressData, error: progressError } = await supabase
       .from('progress')
       .select('*')
       .eq('user_id', user.id)
       .single()
+
+      // If no progress entry exists, create one
+      if (progressError || !progressData) {
+        const { error: insertError } = await supabase
+          .from('progress')
+          .insert({
+            user_id: user.id,
+            total_minutes: tutorial.duration_minutes || 0,
+            videos_completed: 1,
+            days_practiced: 1,
+            current_streak: 1,
+            longest_streak: 1,
+            total_points: points,
+            last_practice_date: new Date().toISOString().split('T')[0],
+          })
+        
+        if (!insertError) {
+          await fetchMotivationMessage()
+        }
+        return
+      }
 
     const today = new Date().toISOString().split('T')[0]
     const lastPracticeDate = progressData?.last_practice_date
@@ -141,6 +163,10 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
 
     // Show motivational message
     await fetchMotivationMessage()
+    } catch (error) {
+      // Silently fail - don't show errors to user, video still works
+      console.error('Progress tracking error:', error)
+    }
   }
 
   const checkAchievements = async (userId: string, videosCompleted: number, streak: number) => {
