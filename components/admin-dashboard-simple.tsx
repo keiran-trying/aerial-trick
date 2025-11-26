@@ -504,6 +504,12 @@ export function AdminDashboardSimple() {
         >
           📊 Analytics
         </button>
+        <button
+          onClick={() => window.location.href = '/admin/users'}
+          className="flex-1 py-3 rounded-lg font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+        >
+          👥 Users
+        </button>
       </div>
 
       {/* Daily Trick Info - Only for manual testing if needed */}
