@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Edit2, Trash2, X, Calendar, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, Calendar, ToggleLeft, ToggleRight, Search } from 'lucide-react'
 import type { Database } from '@/lib/types/database.types'
 
 type Tutorial = Database['public']['Tables']['tutorials']['Row']
@@ -36,6 +36,7 @@ export function AdminWeeklyChallenges() {
   const [endDate, setEndDate] = useState('')
   const [isEnabled, setIsEnabled] = useState(true)
   const [challengeType, setChallengeType] = useState<'weekly' | 'monthly'>('weekly')
+  const [tutorialSearch, setTutorialSearch] = useState('')
   
   const supabase = createClient()
 
@@ -73,6 +74,7 @@ export function AdminWeeklyChallenges() {
     setEndDate('')
     setIsEnabled(true)
     setChallengeType('weekly')
+    setTutorialSearch('')
     setEditingId(null)
     setShowForm(false)
   }
@@ -227,7 +229,7 @@ export function AdminWeeklyChallenges() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-gray-900 mb-1">
                 Title *
               </label>
               <input
@@ -235,32 +237,32 @@ export function AdminWeeklyChallenges() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                 placeholder="E.g., Master Your Inversions - Week 1"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-gray-900 mb-1">
                 Description
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-24 resize-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-24 resize-none text-gray-900"
                 placeholder="Describe the challenge..."
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-bold text-gray-900 mb-1">
                   Challenge Type *
                 </label>
                 <select
                   value={challengeType}
                   onChange={(e) => setChallengeType(e.target.value as 'weekly' | 'monthly')}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                 >
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
@@ -269,7 +271,7 @@ export function AdminWeeklyChallenges() {
 
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <span className="text-sm font-medium text-gray-700">Enabled</span>
+                  <span className="text-sm font-bold text-gray-900">Enabled</span>
                   <button
                     type="button"
                     onClick={() => setIsEnabled(!isEnabled)}
@@ -289,7 +291,7 @@ export function AdminWeeklyChallenges() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-bold text-gray-900 mb-1">
                   Start Date *
                 </label>
                 <input
@@ -297,12 +299,12 @@ export function AdminWeeklyChallenges() {
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-bold text-gray-900 mb-1">
                   End Date *
                 </label>
                 <input
@@ -310,38 +312,96 @@ export function AdminWeeklyChallenges() {
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2">
                 Select Tutorials * ({selectedTutorialIds.length} selected)
               </label>
-              <div className="max-h-64 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-2">
-                {tutorials.map((tutorial) => (
-                  <label
-                    key={tutorial.id}
-                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedTutorialIds.includes(tutorial.id)
-                        ? 'bg-purple-50 border border-purple-300'
-                        : 'bg-gray-50 hover:bg-gray-100'
-                    }`}
+              
+              {/* Search Bar */}
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search tutorials..."
+                  value={tutorialSearch}
+                  onChange={(e) => setTutorialSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 text-sm"
+                />
+                {tutorialSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setTutorialSearch('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    <input
-                      type="checkbox"
-                      checked={selectedTutorialIds.includes(tutorial.id)}
-                      onChange={() => handleToggleTutorial(tutorial.id)}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{tutorial.title}</p>
-                      <p className="text-sm text-gray-500 capitalize">{tutorial.difficulty}</p>
-                    </div>
-                  </label>
-                ))}
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
+
+              {/* Tutorial List */}
+              <div className="max-h-96 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-2">
+                {tutorials
+                  .filter((tutorial) => {
+                    if (!tutorialSearch.trim()) return true
+                    const search = tutorialSearch.toLowerCase()
+                    return (
+                      tutorial.title.toLowerCase().includes(search) ||
+                      tutorial.difficulty.toLowerCase().includes(search) ||
+                      tutorial.description?.toLowerCase().includes(search)
+                    )
+                  })
+                  .map((tutorial) => (
+                    <label
+                      key={tutorial.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedTutorialIds.includes(tutorial.id)
+                          ? 'bg-purple-50 border border-purple-300'
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedTutorialIds.includes(tutorial.id)}
+                        onChange={() => handleToggleTutorial(tutorial.id)}
+                        className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{tutorial.title}</p>
+                        <p className="text-sm text-gray-700 capitalize font-medium">{tutorial.difficulty}</p>
+                      </div>
+                    </label>
+                  ))}
+                {tutorials.filter((tutorial) => {
+                  if (!tutorialSearch.trim()) return false
+                  const search = tutorialSearch.toLowerCase()
+                  return !(
+                    tutorial.title.toLowerCase().includes(search) ||
+                    tutorial.difficulty.toLowerCase().includes(search) ||
+                    tutorial.description?.toLowerCase().includes(search)
+                  )
+                }).length === tutorials.length && tutorialSearch && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-sm">No tutorials found matching "{tutorialSearch}"</p>
+                  </div>
+                )}
+              </div>
+              
+              <p className="text-xs text-gray-600 mt-2">
+                Showing {tutorials.filter((tutorial) => {
+                  if (!tutorialSearch.trim()) return true
+                  const search = tutorialSearch.toLowerCase()
+                  return (
+                    tutorial.title.toLowerCase().includes(search) ||
+                    tutorial.difficulty.toLowerCase().includes(search) ||
+                    tutorial.description?.toLowerCase().includes(search)
+                  )
+                }).length} of {tutorials.length} tutorials
+              </p>
             </div>
 
             <button
@@ -389,9 +449,9 @@ export function AdminWeeklyChallenges() {
                     )}
                   </div>
                   {challenge.description && (
-                    <p className="text-sm text-gray-600 mb-2">{challenge.description}</p>
+                    <p className="text-sm text-gray-700 mb-2 font-medium">{challenge.description}</p>
                   )}
-                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                  <div className="flex items-center gap-3 text-xs text-gray-700 font-medium">
                     <span className="capitalize">{challenge.challenge_type}</span>
                     <span>•</span>
                     <span>{challenge.tutorial_ids.length} tutorials</span>
