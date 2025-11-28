@@ -8,11 +8,11 @@ type Tutorial = Database['public']['Tables']['tutorials']['Row']
 
 interface TutorialDetailModalProps {
   tutorial: Tutorial
-  isOpen: boolean
+  isOpen?: boolean
   onClose: () => void
 }
 
-export function TutorialDetailModal({ tutorial, isOpen, onClose }: TutorialDetailModalProps) {
+export function TutorialDetailModal({ tutorial, isOpen = true, onClose }: TutorialDetailModalProps) {
   if (!isOpen) return null
 
   return (
