@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { LayoutWrapper } from '@/components/layout-wrapper'
 import { DailyTrick } from '@/components/daily-trick'
+import { WeeklyChallenge } from '@/components/weekly-challenge'
 import { TutorialShuffle } from '@/components/tutorial-shuffle'
 import { TutorialTabs } from '@/components/tutorial-tabs'
 
@@ -56,6 +57,7 @@ export default function HomePage() {
     <LayoutWrapper title="Aerial Trick" showSettings={true}>
       <div className="space-y-6 p-4">
         <DailyTrick />
+        <WeeklyChallenge />
         <TutorialShuffle />
         <TutorialTabs />
       </div>

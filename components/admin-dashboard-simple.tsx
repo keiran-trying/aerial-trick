@@ -6,6 +6,7 @@ import { Plus, Edit2, Trash2, Upload, X, Search, Tag } from 'lucide-react'
 import { difficultyColors } from '@/lib/utils'
 import { AdminDailyTrick } from './admin-daily-trick'
 import { AdminBulkTag } from './admin-bulk-tag'
+import { AdminWeeklyChallenges } from './admin-weekly-challenges'
 import type { Database } from '@/lib/types/database.types'
 import * as tus from 'tus-js-client'
 
@@ -17,6 +18,7 @@ export function AdminDashboardSimple() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [showBulkTag, setShowBulkTag] = useState(false)
+  const [activeTab, setActiveTab] = useState<'tutorials' | 'challenges'>('tutorials')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<string>('')
@@ -491,29 +493,51 @@ export function AdminDashboardSimple() {
   return (
     <div className="p-4 space-y-4">
       {/* Navigation Tabs */}
-      <div className="flex gap-2 bg-white rounded-xl p-1 shadow-md">
+      <div className="grid grid-cols-2 gap-2 bg-white rounded-xl p-1 shadow-md">
         <button
-          onClick={() => {}}
-          className="flex-1 py-3 rounded-lg font-semibold bg-purple-600 text-white"
+          onClick={() => setActiveTab('tutorials')}
+          className={`py-3 rounded-lg font-semibold transition-colors ${
+            activeTab === 'tutorials'
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
         >
           📹 Tutorials
         </button>
         <button
+          onClick={() => setActiveTab('challenges')}
+          className={`py-3 rounded-lg font-semibold transition-colors ${
+            activeTab === 'challenges'
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          🏆 Challenges
+        </button>
+        <button
           onClick={() => window.location.href = '/admin/analytics'}
-          className="flex-1 py-3 rounded-lg font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+          className="py-3 rounded-lg font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
         >
           📊 Analytics
         </button>
         <button
           onClick={() => window.location.href = '/admin/users'}
-          className="flex-1 py-3 rounded-lg font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+          className="py-3 rounded-lg font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
         >
           👥 Users
         </button>
       </div>
 
-      {/* Daily Trick Info - Only for manual testing if needed */}
-      {!showForm && process.env.NODE_ENV === 'development' && (
+      {/* Weekly Challenges Tab */}
+      {activeTab === 'challenges' && (
+        <AdminWeeklyChallenges />
+      )}
+
+      {/* Tutorials Tab */}
+      {activeTab === 'tutorials' && (
+        <>
+          {/* Daily Trick Info - Only for manual testing if needed */}
+          {!showForm && process.env.NODE_ENV === 'development' && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
           <p className="text-sm text-blue-900 font-medium mb-2">
             💡 <strong>Daily Trick is Automatic!</strong>
@@ -887,14 +911,16 @@ export function AdminDashboardSimple() {
         )
       })()}
 
-      {/* Bulk Tag Modal */}
-      {showBulkTag && (
-        <AdminBulkTag
-          onClose={() => {
-            setShowBulkTag(false)
-            fetchTutorials() // Refresh tutorials after tagging
-          }}
-        />
+          {/* Bulk Tag Modal */}
+          {showBulkTag && (
+            <AdminBulkTag
+              onClose={() => {
+                setShowBulkTag(false)
+                fetchTutorials() // Refresh tutorials after tagging
+              }}
+            />
+          )}
+        </>
       )}
     </div>
   )
