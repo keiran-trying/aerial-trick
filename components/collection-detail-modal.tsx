@@ -76,9 +76,9 @@ export function CollectionDetailModal({ collection, onClose }: CollectionDetailM
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center">
       {/* Modal */}
-      <div className="bg-white w-full h-full sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-2xl flex flex-col animate-slide-up">
+      <div className="bg-white w-full h-full sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-2xl flex flex-col overflow-hidden animate-slide-up">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-br from-purple-500 to-pink-500 text-white p-6 sm:rounded-t-2xl flex justify-between items-start">
+        <div className="flex-shrink-0 bg-gradient-to-br from-purple-500 to-pink-500 text-white p-6 sm:rounded-t-2xl flex justify-between items-start">
           <div className="flex-1">
             <div className="text-4xl mb-2">{collection.icon || '📁'}</div>
             <h2 className="text-2xl font-bold mb-2">{collection.name}</h2>
@@ -99,7 +99,7 @@ export function CollectionDetailModal({ collection, onClose }: CollectionDetailM
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
