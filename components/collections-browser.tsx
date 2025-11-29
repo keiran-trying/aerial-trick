@@ -167,9 +167,6 @@ export function CollectionsBrowser() {
                     <p className="text-sm text-gray-700 font-semibold">
                       {collection.tutorial_count} {collection.tutorial_count === 1 ? 'tutorial' : 'tutorials'}
                     </p>
-                    <p className="text-xs text-purple-600 mt-1 font-medium">
-                      Tap to view tutorials →
-                    </p>
                   </div>
                   <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 mr-4" />
                 </button>

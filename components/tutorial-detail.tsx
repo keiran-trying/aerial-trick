@@ -14,19 +14,10 @@ type Comment = Database['public']['Tables']['comments']['Row'] & {
 
 interface TutorialDetailProps {
   tutorial: Tutorial
-  onClose?: () => void
 }
 
-export function TutorialDetail({ tutorial, onClose }: TutorialDetailProps) {
+export function TutorialDetail({ tutorial }: TutorialDetailProps) {
   const router = useRouter()
-  
-  const handleBack = () => {
-    if (onClose) {
-      onClose()
-    } else {
-      router.back()
-    }
-  }
   const [isFavorite, setIsFavorite] = useState(false)
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
@@ -260,8 +251,8 @@ export function TutorialDetail({ tutorial, onClose }: TutorialDetailProps) {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <button onClick={handleBack} className="p-2 -ml-2">
+        <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
+          <button onClick={() => router.back()} className="p-2 -ml-2">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <button onClick={handleFavoriteToggle} className="p-2 -mr-2">
@@ -275,26 +266,23 @@ export function TutorialDetail({ tutorial, onClose }: TutorialDetailProps) {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Video Player - Smaller with margins */}
-        <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl mx-auto" style={{ maxWidth: '640px' }}>
-          <div className="relative aspect-[9/16]">
-            <video
-              controls
-              autoPlay
-              className="w-full h-full object-contain"
-              onEnded={handleVideoEnd}
-              poster={tutorial.thumbnail_url || undefined}
-              playsInline
-            >
-              <source src={tutorial.video_url} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          </div>
+      <div className="max-w-md mx-auto">
+        {/* Video Player - Vertical/Portrait */}
+        <div className="relative bg-black aspect-[9/16]">
+          <video
+            controls
+            className="w-full h-full object-cover"
+            onEnded={handleVideoEnd}
+            poster={tutorial.thumbnail_url || undefined}
+            playsInline
+          >
+            <source src={tutorial.video_url} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
         </div>
 
         {/* Content */}
-        <div className="max-w-2xl mx-auto mt-6 space-y-4">
+        <div className="p-4 space-y-4">
           {/* Title and Info */}
           <div>
             <div className="flex items-center gap-2 mb-2">
