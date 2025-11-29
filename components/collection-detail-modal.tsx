@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { X, FolderOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { TutorialCard } from './tutorial-card'
@@ -24,85 +24,11 @@ export function CollectionDetailModal({ collection, onClose }: CollectionDetailM
   const [tutorials, setTutorials] = useState<Tutorial[]>([])
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [dragStartY, setDragStartY] = useState<number | null>(null)
-  const [dragCurrentY, setDragCurrentY] = useState<number | null>(null)
-  const modalRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
   useEffect(() => {
     fetchCollectionTutorials()
   }, [collection.id])
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setDragStartY(e.touches[0].clientY)
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (dragStartY === null) return
-    setDragCurrentY(e.touches[0].clientY)
-  }
-
-  const handleTouchEnd = () => {
-    if (dragStartY === null || dragCurrentY === null) {
-      setDragStartY(null)
-      setDragCurrentY(null)
-      return
-    }
-
-    const dragDistance = dragCurrentY - dragStartY
-
-    // If dragged down more than 100px, close the modal
-    if (dragDistance > 100) {
-      onClose()
-    } 
-    // If dragged up more than 50px and not already expanded, expand it
-    else if (dragDistance < -50 && !isExpanded) {
-      setIsExpanded(true)
-    }
-
-    setDragStartY(null)
-    setDragCurrentY(null)
-  }
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setDragStartY(e.clientY)
-  }
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (dragStartY === null) return
-    setDragCurrentY(e.clientY)
-  }
-
-  const handleMouseUp = () => {
-    if (dragStartY === null || dragCurrentY === null) {
-      setDragStartY(null)
-      setDragCurrentY(null)
-      return
-    }
-
-    const dragDistance = dragCurrentY - dragStartY
-
-    if (dragDistance > 100) {
-      onClose()
-    } else if (dragDistance < -50 && !isExpanded) {
-      setIsExpanded(true)
-    }
-
-    setDragStartY(null)
-    setDragCurrentY(null)
-  }
-
-  useEffect(() => {
-    if (dragStartY !== null) {
-      window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('mouseup', handleMouseUp)
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove)
-        window.removeEventListener('mouseup', handleMouseUp)
-      }
-    }
-  }, [dragStartY, dragCurrentY])
 
   const fetchCollectionTutorials = async () => {
     try {
@@ -147,49 +73,12 @@ export function CollectionDetailModal({ collection, onClose }: CollectionDetailM
     }
   }
 
-  // Calculate the modal height based on drag and expansion state
-  const getModalHeight = () => {
-    if (dragStartY !== null && dragCurrentY !== null) {
-      const dragDistance = dragCurrentY - dragStartY
-      if (isExpanded) {
-        // If expanded, allow dragging down
-        return dragDistance > 0 ? `calc(100vh - ${dragDistance}px)` : '100vh'
-      } else {
-        // If not expanded, show partial height and allow dragging up
-        const baseHeight = 70 // percentage
-        const dragPercent = Math.max(-30, Math.min(0, (dragDistance / window.innerHeight) * 100))
-        return `${baseHeight - dragPercent}vh`
-      }
-    }
-    return isExpanded ? '100vh' : '70vh'
-  }
-
   return (
-    <div 
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center">
       {/* Modal */}
-      <div 
-        ref={modalRef}
-        className="bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl flex flex-col animate-slide-up transition-all"
-        style={{ height: getModalHeight() }}
-      >
-        {/* Drag Handle */}
-        <div 
-          className="w-full py-2 flex justify-center cursor-grab active:cursor-grabbing"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-        >
-          <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-        </div>
-
+      <div className="bg-white w-full h-full sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-2xl flex flex-col animate-slide-up">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-br from-purple-500 to-pink-500 text-white p-6 rounded-t-2xl flex justify-between items-start">
+        <div className="sticky top-0 bg-gradient-to-br from-purple-500 to-pink-500 text-white p-6 sm:rounded-t-2xl flex justify-between items-start">
           <div className="flex-1">
             <div className="text-4xl mb-2">{collection.icon || '📁'}</div>
             <h2 className="text-2xl font-bold mb-2">{collection.name}</h2>
