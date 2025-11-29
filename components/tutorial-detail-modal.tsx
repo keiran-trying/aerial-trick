@@ -37,7 +37,7 @@ export function TutorialDetailModal({ tutorial, isOpen = true, onClose }: Tutori
 
             {/* Tutorial Detail Content */}
             <div className="h-full overflow-y-auto">
-              <TutorialDetail tutorial={tutorial} />
+              <TutorialDetail tutorial={tutorial} onClose={onClose} />
             </div>
           </div>
         </div>
