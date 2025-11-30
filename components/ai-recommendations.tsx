@@ -38,7 +38,11 @@ export function AIRecommendations() {
           .limit(3)
           .order('created_at', { ascending: false })
         
-        const tutorialsWithReason = (tutorials || []).map((tutorial, index) => ({
+        // Filter out tutorials from future challenges
+        const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
+        const filteredTutorials = await filterFutureTutorials(tutorials, supabase)
+        
+        const tutorialsWithReason = filteredTutorials.map((tutorial, index) => ({
           ...tutorial,
           aiReason: index === 0 ? '🌟 Most recently added tutorial' : 
                     index === 1 ? '🎯 Popular with beginners' : 
@@ -110,8 +114,12 @@ export function AIRecommendations() {
 
       const { data: tutorials } = await query.order('created_at', { ascending: false })
 
+      // Filter out tutorials from future challenges
+      const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
+      const filteredTutorials = await filterFutureTutorials(tutorials, supabase)
+
       // If no tutorials at exact level, try easier level
-      if (!tutorials || tutorials.length === 0) {
+      if (!filteredTutorials || filteredTutorials.length === 0) {
         const fallbackLevel = skillLevel === 'intermediate' ? 'easy' : 'intermediate'
         const { data: fallbackTutorials } = await supabase
           .from('tutorials')
@@ -121,7 +129,10 @@ export function AIRecommendations() {
           .limit(3)
           .order('created_at', { ascending: false })
         
-        const tutorialsWithReason = (fallbackTutorials || []).map((tutorial) => ({
+        // Filter fallback tutorials too
+        const filteredFallback = await filterFutureTutorials(fallbackTutorials, supabase)
+        
+        const tutorialsWithReason = filteredFallback.map((tutorial) => ({
           ...tutorial,
           aiReason: '🎯 Master the basics first, then level up!'
         }))
@@ -133,7 +144,7 @@ export function AIRecommendations() {
       }
 
       // Add AI-like reasons based on user behavior
-      const tutorialsWithReason = tutorials.slice(0, 3).map((tutorial, index) => {
+      const tutorialsWithReason = filteredTutorials.slice(0, 3).map((tutorial, index) => {
         let reason = ''
         
         if (skillLevel === 'easy') {
@@ -168,7 +179,11 @@ export function AIRecommendations() {
           .limit(3)
           .order('created_at', { ascending: false })
         
-        const tutorialsWithReason = (tutorials || []).map((tutorial) => ({
+        // Filter out tutorials from future challenges
+        const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
+        const filteredTutorials = await filterFutureTutorials(tutorials, supabase)
+        
+        const tutorialsWithReason = filteredTutorials.map((tutorial) => ({
           ...tutorial,
           aiReason: '🎯 Recommended for you'
         }))

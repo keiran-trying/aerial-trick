@@ -60,7 +60,11 @@ export function TutorialTabs() {
         
         const { data } = await query.order('created_at', { ascending: false })
 
-        setTutorials(data || [])
+        // Filter out tutorials from future challenges (unless user is admin)
+        const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
+        const filteredData = await filterFutureTutorials(data, supabase)
+        
+        setTutorials(filteredData)
 
         // Fetch user's favorites
         const { data: { user } } = await supabase.auth.getUser()

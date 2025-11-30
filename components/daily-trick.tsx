@@ -30,7 +30,15 @@ export function DailyTrick() {
               .single()
             
             if (tutorial) {
-              setDailyTutorial(tutorial)
+              // Filter out if it's in a future challenge
+              const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
+              const filtered = await filterFutureTutorials([tutorial], supabase)
+              
+              if (filtered.length > 0) {
+                setDailyTutorial(filtered[0])
+              } else {
+                setDailyTutorial(null)
+              }
               setLoading(false)
               return
             }
@@ -55,7 +63,19 @@ export function DailyTrick() {
             .eq('id', dailyTrickData.tutorial_id)
             .single()
           
-          setDailyTutorial(tutorial)
+          if (tutorial) {
+            // Filter out if it's in a future challenge
+            const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
+            const filtered = await filterFutureTutorials([tutorial], supabase)
+            
+            if (filtered.length > 0) {
+              setDailyTutorial(filtered[0])
+            } else {
+              setDailyTutorial(null)
+            }
+          } else {
+            setDailyTutorial(null)
+          }
         } else {
           // No daily trick set yet
           setDailyTutorial(null)

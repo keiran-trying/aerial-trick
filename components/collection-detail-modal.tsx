@@ -54,7 +54,11 @@ export function CollectionDetailModal({ collection, onClose }: CollectionDetailM
         .in('id', tutorialIds)
         .order('created_at', { ascending: false })
 
-      setTutorials(tutorialsData || [])
+      // Filter out tutorials from future challenges (unless user is admin)
+      const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
+      const filteredData = await filterFutureTutorials(tutorialsData, supabase)
+      
+      setTutorials(filteredData)
 
       // Fetch favorites
       const { data: { user } } = await supabase.auth.getUser()

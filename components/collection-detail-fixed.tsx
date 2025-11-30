@@ -57,7 +57,11 @@ export function CollectionDetail({ collection }: CollectionDetailProps) {
         console.log('Tutorials data:', tutorialsData)
         console.log('Tutorials error:', tutError)
 
-        setTutorials(tutorialsData || [])
+        // Filter out tutorials from future challenges (unless user is admin)
+        const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
+        const filteredData = await filterFutureTutorials(tutorialsData, supabase)
+        
+        setTutorials(filteredData)
 
         // Fetch user's favorites
         const { data: { user } } = await supabase.auth.getUser()

@@ -25,9 +25,11 @@ export function TutorialShuffle() {
         .from('tutorials')
         .select('*')
       
-      if (data) {
-        setTutorials(data)
-      }
+      // Filter out tutorials from future challenges (unless user is admin)
+      const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
+      const filteredData = await filterFutureTutorials(data, supabase)
+      
+      setTutorials(filteredData)
     }
     fetchTutorials()
   }, [supabase])
