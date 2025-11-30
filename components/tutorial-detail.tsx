@@ -25,23 +25,31 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
   const [showMotivation, setShowMotivation] = useState(false)
   const [motivationMessage, setMotivationMessage] = useState('')
   const [hasCompletedVideo, setHasCompletedVideo] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
     async function fetchData() {
       const { data: { user } } = await supabase.auth.getUser()
       
-      if (user) {
-        // Check if favorited
-        const { data: favData } = await supabase
-          .from('favorites')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('tutorial_id', tutorial.id)
-          .single()
-        
-        setIsFavorite(!!favData)
+      // Require authentication to view tutorials
+      if (!user) {
+        router.push('/auth/login')
+        return
       }
+
+      setIsAuthenticated(true)
+      
+      // Check if favorited
+      const { data: favData } = await supabase
+        .from('favorites')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('tutorial_id', tutorial.id)
+        .single()
+      
+      setIsFavorite(!!favData)
 
       // Fetch comments
       const { data: commentsData } = await supabase
@@ -54,10 +62,11 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
         .order('created_at', { ascending: false })
 
       setComments(commentsData as any || [])
+      setLoading(false)
     }
 
     fetchData()
-  }, [tutorial.id, supabase])
+  }, [tutorial.id, router, supabase])
 
   const handleFavoriteToggle = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -245,6 +254,20 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    )
+  }
+
+  // Don't render if not authenticated
+  if (!isAuthenticated) {
+    return null
   }
 
   return (

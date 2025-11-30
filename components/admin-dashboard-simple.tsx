@@ -422,6 +422,7 @@ export function AdminDashboardSimple() {
           .map(name => toTitleCase(name))
 
         // Create collections if they don't exist and link them
+        let isFirstCollection = true
         for (const collectionName of collectionNames) {
           // Try to get existing collection (case-insensitive search)
           let { data: existingCollections } = await supabase
@@ -463,6 +464,19 @@ export function AdminDashboardSimple() {
                 tutorial_id: tutorialId,
                 collection_id: collectionId,
               })
+            
+            // Update the collection's updated_at timestamp and thumbnail
+            // Only update thumbnail for the FIRST collection
+            const updateData: any = { updated_at: new Date().toISOString() }
+            if (isFirstCollection && thumbnailUrl) {
+              updateData.thumbnail_url = thumbnailUrl
+              isFirstCollection = false
+            }
+            
+            await supabase
+              .from('collections')
+              .update(updateData)
+              .eq('id', collectionId)
           }
         }
       }

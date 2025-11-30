@@ -103,6 +103,23 @@ export function AdminBulkTag({ onClose }: BulkTagProps) {
         throw insertError
       }
 
+      // Get the newest tutorial's thumbnail from the selected tutorials
+      const selectedTutorialsList = tutorials.filter(t => selectedTutorials.has(t.id))
+      const newestTutorial = selectedTutorialsList.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )[0]
+
+      // Update the collection's updated_at timestamp and thumbnail
+      const updateData: any = { updated_at: new Date().toISOString() }
+      if (newestTutorial?.thumbnail_url) {
+        updateData.thumbnail_url = newestTutorial.thumbnail_url
+      }
+      
+      await supabase
+        .from('collections')
+        .update(updateData)
+        .eq('id', collectionId)
+
       alert(`Successfully tagged ${selectedTutorials.size} tutorial(s) with "${collectionName}"!`)
       onClose()
     } catch (error: any) {

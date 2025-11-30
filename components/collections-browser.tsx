@@ -60,7 +60,7 @@ export function CollectionsBrowser() {
         .order('updated_at', { ascending: false })
 
       if (collectionsData) {
-        // Get tutorial count and newest thumbnail for each collection
+        // Get tutorial count and thumbnail for each collection
         const collectionsWithDetails = await Promise.all(
           collectionsData.map(async (collection) => {
             // Get tutorial count
@@ -69,16 +69,20 @@ export function CollectionsBrowser() {
               .select('*', { count: 'exact', head: true })
               .eq('collection_id', collection.id)
 
-            // Get newest tutorial's thumbnail
-            const { data: newestTutorial } = await supabase
-              .from('tutorial_collections')
-              .select('tutorials(thumbnail_url, created_at)')
-              .eq('collection_id', collection.id)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .single()
+            // Use stored thumbnail_url if available, otherwise fetch the newest tutorial's thumbnail
+            let thumbnailUrl = collection.thumbnail_url
+            
+            if (!thumbnailUrl) {
+              const { data: newestTutorial } = await supabase
+                .from('tutorial_collections')
+                .select('tutorials(thumbnail_url, created_at)')
+                .eq('collection_id', collection.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single()
 
-            const thumbnailUrl = newestTutorial?.tutorials ? (newestTutorial.tutorials as any).thumbnail_url : null
+              thumbnailUrl = newestTutorial?.tutorials ? (newestTutorial.tutorials as any).thumbnail_url : null
+            }
 
             return {
               ...collection,

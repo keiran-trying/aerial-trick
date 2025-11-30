@@ -323,6 +323,22 @@ export function AdminDashboardEnhanced() {
             )
 
           if (collectionError) throw collectionError
+          
+          // Update the updated_at timestamp for all affected collections to move them to the top
+          // Only update thumbnail for the FIRST collection
+          let isFirstCollection = true
+          for (const collectionId of selectedCollections) {
+            const updateData: any = { updated_at: new Date().toISOString() }
+            if (isFirstCollection && thumbnailUrl) {
+              updateData.thumbnail_url = thumbnailUrl
+              isFirstCollection = false
+            }
+            
+            await supabase
+              .from('collections')
+              .update(updateData)
+              .eq('id', collectionId)
+          }
         }
       }
 
