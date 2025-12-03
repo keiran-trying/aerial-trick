@@ -30,17 +30,10 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const supabase = createClient()
 
-  // Handle back navigation - fixed to work reliably
-  const handleGoBack = useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    // Try to go back, fallback to home if no history
-    if (window.history.length > 1) {
-      router.back()
-    } else {
-      router.push('/')
-    }
+  // Handle back navigation - using direct navigation for reliability on mobile/Capacitor
+  const handleGoBack = useCallback(() => {
+    // Always navigate to home - most reliable on mobile webviews
+    router.push('/')
   }, [router])
 
   useEffect(() => {
@@ -290,12 +283,17 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200/50 safe-area-top">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <button 
-            onClick={handleGoBack} 
-            className="p-2.5 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors touch-manipulation"
+            onClick={handleGoBack}
+            onTouchEnd={(e) => {
+              e.preventDefault()
+              handleGoBack()
+            }}
+            className="p-3 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors touch-manipulation select-none"
+            style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
             type="button"
             aria-label="Go back"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-700" />
+            <ArrowLeft className="w-5 h-5 text-slate-700 pointer-events-none" />
           </button>
           <h2 className="text-sm font-medium text-slate-500 truncate max-w-[180px]">
             {tutorial.collection || 'Tutorial'}
