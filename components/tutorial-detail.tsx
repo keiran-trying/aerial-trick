@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Heart, Clock, MessageCircle, Send } from 'lucide-react'
+import { ArrowLeft, Heart, Clock, MessageCircle, Send, Play } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn, difficultyColors, formatDuration, formatDate, calculatePoints } from '@/lib/utils'
 import type { Database } from '@/lib/types/database.types'
@@ -27,7 +27,21 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
   const [hasCompletedVideo, setHasCompletedVideo] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const supabase = createClient()
+
+  // Handle back navigation - fixed to work reliably
+  const handleGoBack = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Try to go back, fallback to home if no history
+    if (window.history.length > 1) {
+      router.back()
+    } else {
+      router.push('/')
+    }
+  }, [router])
 
   useEffect(() => {
     async function fetchData() {
@@ -259,8 +273,8 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
   // Show loading while checking authentication
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-slate-200 border-t-violet-600"></div>
       </div>
     )
   }
@@ -271,141 +285,196 @@ export function TutorialDetail({ tutorial }: TutorialDetailProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
-        <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
-          <button onClick={() => router.back()} className="p-2 -ml-2">
-            <ArrowLeft className="w-6 h-6" />
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200/50 safe-area-top">
+        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+          <button 
+            onClick={handleGoBack} 
+            className="p-2.5 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors touch-manipulation"
+            type="button"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
           </button>
-          <button onClick={handleFavoriteToggle} className="p-2 -mr-2">
+          <h2 className="text-sm font-medium text-slate-500 truncate max-w-[180px]">
+            {tutorial.collection || 'Tutorial'}
+          </h2>
+          <button 
+            onClick={handleFavoriteToggle} 
+            className="p-2.5 -mr-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors touch-manipulation"
+            type="button"
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
             <Heart
               className={cn(
-                'w-6 h-6 transition-all',
-                isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                'w-5 h-5 transition-all duration-200',
+                isFavorite ? 'fill-rose-500 text-rose-500 scale-110' : 'text-slate-500'
               )}
             />
           </button>
         </div>
       </div>
 
-      <div className="max-w-md mx-auto">
-        {/* Video Player - Vertical/Portrait */}
-        <div className="relative bg-black aspect-[9/16]">
-          <video
-            controls
-            className="w-full h-full object-cover"
-            onEnded={handleVideoEnd}
-            poster={tutorial.thumbnail_url || undefined}
-            playsInline
-          >
-            <source src={tutorial.video_url} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 space-y-4">
-          {/* Title and Info */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className={cn(
-                'px-3 py-1 rounded-full text-xs font-semibold text-white',
-                difficultyColors[tutorial.difficulty]
-              )}>
-                {tutorial.difficulty.toUpperCase()}
-              </span>
-              {tutorial.collection && (
-                <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                  {tutorial.collection}
-                </span>
+      <div className="max-w-lg mx-auto px-4 py-6">
+        {/* Elegant Video Card */}
+        <div className="relative mb-6">
+          <div className="relative bg-slate-900 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/50">
+            {/* Aspect ratio container - 16:9 for a sleek look */}
+            <div className="relative aspect-video">
+              {!isVideoPlaying ? (
+                // Thumbnail with play overlay
+                <div 
+                  className="absolute inset-0 cursor-pointer group"
+                  onClick={() => setIsVideoPlaying(true)}
+                >
+                  {tutorial.thumbnail_url ? (
+                    <img 
+                      src={tutorial.thumbnail_url} 
+                      alt={tutorial.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600" />
+                  )}
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  {/* Play button */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 group-active:scale-95 transition-transform duration-200">
+                      <Play className="w-7 h-7 text-slate-800 ml-1" fill="currentColor" />
+                    </div>
+                  </div>
+                  {/* Duration badge */}
+                  {tutorial.duration_minutes && (
+                    <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-black/70 backdrop-blur-sm rounded-md">
+                      <span className="text-xs font-medium text-white">
+                        {formatDuration(tutorial.duration_minutes)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Video player
+                <video
+                  controls
+                  autoPlay
+                  className="w-full h-full object-contain bg-black"
+                  onEnded={handleVideoEnd}
+                  playsInline
+                >
+                  <source src={tutorial.video_url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Content Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
+          {/* Title and Info */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className={cn(
+                'px-3 py-1 rounded-full text-xs font-semibold text-white shadow-sm',
+                difficultyColors[tutorial.difficulty]
+              )}>
+                {tutorial.difficulty.charAt(0).toUpperCase() + tutorial.difficulty.slice(1)}
+              </span>
+            </div>
             
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-xl font-bold text-slate-900 mb-2 leading-tight">
               {tutorial.title}
             </h1>
 
             {tutorial.description && (
-              <p className="text-gray-600 mb-3">{tutorial.description}</p>
+              <p className="text-slate-600 text-sm leading-relaxed">{tutorial.description}</p>
             )}
 
-            <div className="flex items-center gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-4 text-sm text-slate-400 mt-4 pt-4 border-t border-slate-100">
               {tutorial.duration_minutes && (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4" />
                   <span>{formatDuration(tutorial.duration_minutes)}</span>
                 </div>
               )}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <MessageCircle className="w-4 h-4" />
-                <span>{comments.length} comments</span>
+                <span>{comments.length} {comments.length === 1 ? 'comment' : 'comments'}</span>
               </div>
             </div>
           </div>
 
-          {/* Comments Section */}
-          <div className="border-t pt-4">
-            <h2 className="font-semibold text-lg mb-4">Comments</h2>
+        </div>
 
-            {/* Comment Form */}
-            <form onSubmit={handleSubmitComment} className="mb-4">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Add a comment..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <button
-                  type="submit"
-                  disabled={!newComment.trim() || isSubmitting}
-                  className="p-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
-              </div>
-            </form>
+        {/* Comments Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mt-4">
+          <h2 className="font-semibold text-slate-900 mb-4">Comments</h2>
 
-            {/* Comments List */}
-            <div className="space-y-4">
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-semibold">
-                    {comment.author?.name?.[0]?.toUpperCase() || '?'}
-                  </div>
-                  <div className="flex-1">
-                    <div className="bg-gray-100 rounded-2xl px-4 py-2">
-                      <p className="font-semibold text-sm text-gray-900">
-                        {comment.author?.name || 'Anonymous'}
-                      </p>
-                      <p className="text-gray-700">{comment.content}</p>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1 ml-4">
-                      {formatDate(comment.created_at)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              {comments.length === 0 && (
-                <p className="text-center text-gray-500 py-8">
-                  No comments yet. Be the first to comment!
-                </p>
-              )}
+          {/* Comment Form */}
+          <form onSubmit={handleSubmitComment} className="mb-5">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Add a comment..."
+                className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm transition-all"
+              />
+              <button
+                type="submit"
+                disabled={!newComment.trim() || isSubmitting}
+                className="p-2.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 active:bg-violet-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Send className="w-4 h-4" />
+              </button>
             </div>
+          </form>
+
+          {/* Comments List */}
+          <div className="space-y-4">
+            {comments.map((comment) => (
+              <div key={comment.id} className="flex gap-3">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                  {comment.author?.name?.[0]?.toUpperCase() || '?'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="bg-slate-50 rounded-xl px-3.5 py-2.5">
+                    <p className="font-medium text-sm text-slate-900">
+                      {comment.author?.name || 'Anonymous'}
+                    </p>
+                    <p className="text-slate-700 text-sm mt-0.5">{comment.content}</p>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1.5 ml-3.5">
+                    {formatDate(comment.created_at)}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {comments.length === 0 && (
+              <div className="text-center py-8">
+                <MessageCircle className="w-10 h-10 text-slate-200 mx-auto mb-2" />
+                <p className="text-slate-400 text-sm">
+                  No comments yet. Be the first to share your thoughts!
+                </p>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Bottom spacing for safe area */}
+        <div className="h-8 safe-area-bottom" />
       </div>
 
       {/* Motivation Modal */}
       {showMotivation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
-          <div className="bg-white rounded-2xl p-8 mx-4 max-w-sm shadow-2xl animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-8 mx-6 max-w-sm shadow-2xl animate-scale-in">
             <div className="text-center">
               <div className="text-6xl mb-4">🎉</div>
-              <p className="text-2xl font-bold text-gray-900">{motivationMessage}</p>
+              <p className="text-xl font-bold text-slate-900 leading-tight">{motivationMessage}</p>
             </div>
           </div>
         </div>
