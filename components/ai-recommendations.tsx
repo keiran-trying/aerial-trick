@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { Sparkles, RefreshCw, Loader2 } from 'lucide-react'
-import { TutorialCard } from './tutorial-card'
+import { Sparkles, RefreshCw, Loader2, Play, Clock, ChevronRight } from 'lucide-react'
+import { cn, difficultyColors, formatDuration } from '@/lib/utils'
 import type { Database } from '@/lib/types/database.types'
 
 type Tutorial = Database['public']['Tables']['tutorials']['Row'] & {
@@ -17,6 +19,7 @@ export function AIRecommendations() {
   const [userLevel, setUserLevel] = useState<string>('')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const supabase = createClient()
+  const router = useRouter()
 
   useEffect(() => {
     fetchRecommendations()
@@ -294,7 +297,11 @@ export function AIRecommendations() {
       {/* Recommendations Grid */}
       <div className="space-y-3">
         {recommendations.map((tutorial, index) => (
-          <div key={tutorial.id} className="bg-white/95 backdrop-blur-sm rounded-xl overflow-hidden">
+          <button
+            key={tutorial.id}
+            onClick={() => router.push(`/tutorial/${tutorial.id}`)}
+            className="w-full text-left bg-white/95 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-white hover:shadow-lg transition-all duration-200 active:scale-[0.98]"
+          >
             <div className="p-3">
               {/* AI Reason Badge */}
               <div className="flex items-start gap-2 mb-3">
@@ -310,10 +317,64 @@ export function AIRecommendations() {
                 </div>
               </div>
               
-              {/* Tutorial Card */}
-              <TutorialCard tutorial={tutorial} compact />
+              {/* Tutorial Preview Card - Navigates to Video Page */}
+              <div className="flex gap-3 items-start">
+                {/* Thumbnail */}
+                <div className="relative flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200">
+                  {tutorial.thumbnail_url ? (
+                    <Image
+                      src={tutorial.thumbnail_url}
+                      alt={tutorial.title}
+                      fill
+                      className="object-cover"
+                      sizes="96px"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                      <span className="text-xl">🧘‍♀️</span>
+                    </div>
+                  )}
+                  {/* Play Button Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-md">
+                      <Play className="w-4 h-4 text-purple-600 fill-purple-600 ml-0.5" />
+                    </div>
+                  </div>
+                  {/* Duration */}
+                  {tutorial.duration_minutes && (
+                    <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/70 rounded text-white text-[9px] font-semibold">
+                      {formatDuration(tutorial.duration_minutes)}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className={cn(
+                      'px-1.5 py-0.5 rounded text-[9px] font-bold text-white uppercase',
+                      difficultyColors[tutorial.difficulty]
+                    )}>
+                      {tutorial.difficulty[0]}
+                    </span>
+                    {tutorial.difficulty_stars && tutorial.difficulty_stars > 0 && (
+                      <span className="text-[9px]">
+                        {'⭐️'.repeat(tutorial.difficulty_stars)}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 leading-tight">
+                    {tutorial.title}
+                  </h3>
+                </div>
+                
+                {/* Arrow indicator */}
+                <div className="flex-shrink-0 self-center">
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+              </div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
