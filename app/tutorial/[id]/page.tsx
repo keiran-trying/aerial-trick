@@ -8,7 +8,7 @@ import type { Database } from '@/lib/types/database.types'
 
 type Tutorial = Database['public']['Tables']['tutorials']['Row']
 
-export default function TutorialPage({ params }: { params: { id: string } }) {
+export default function TutorialPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [tutorial, setTutorial] = useState<Tutorial | null>(null)
   const [loading, setLoading] = useState(true)
@@ -18,6 +18,9 @@ export default function TutorialPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     async function checkAuthAndFetchTutorial() {
       try {
+        // Await params in Next.js 16+
+        const { id } = await params
+        
         // Check if user is authenticated
         const { data: { user } } = await supabase.auth.getUser()
         
@@ -33,10 +36,11 @@ export default function TutorialPage({ params }: { params: { id: string } }) {
         const { data: tutorialData, error } = await supabase
           .from('tutorials')
           .select('*')
-          .eq('id', params.id)
+          .eq('id', id)
           .single()
 
         if (error || !tutorialData) {
+          console.error('Tutorial not found:', id, error)
           router.push('/')
           return
         }
@@ -51,7 +55,7 @@ export default function TutorialPage({ params }: { params: { id: string } }) {
     }
 
     checkAuthAndFetchTutorial()
-  }, [params.id, router, supabase])
+  }, [params, router, supabase])
 
   if (loading) {
     return (
