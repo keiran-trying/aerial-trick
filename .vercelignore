@@ -1,0 +1,15 @@
+# Backup folders should not be built
+api_backup/
+backup/
+collection_backup/
+tutorial_backup/
+out/
+
+# Documentation
+*.md
+!README.md
+
+# iOS/Android
+ios/
+android/
+

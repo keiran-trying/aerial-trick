@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   //
   // output: 'export',  // COMMENTED OUT FOR WEB DEPLOYMENT (Vercel/production)
   
+  // Exclude backup folders from build
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  
   // Skip ESLint during builds for now
   eslint: {
     ignoreDuringBuilds: true,
