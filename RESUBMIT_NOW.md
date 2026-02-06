@@ -2,9 +2,16 @@
 
 ## ✅ What Was Fixed
 
+### Fix #1: Content Flickering (Apple Review Issue)
 **Issue:** Content flickering on app launch  
 **Cause:** Multiple loading spinners appearing/disappearing simultaneously  
 **Fix:** Removed all loading spinners, show content immediately  
+**Status:** ✅ FIXED and tested
+
+### Fix #2: Constant Login Prompts (User Experience Issue)
+**Issue:** Every video click asks for login  
+**Cause:** Too strict authentication requirement  
+**Fix:** Allow video viewing without authentication  
 **Status:** ✅ FIXED and tested
 
 ---
@@ -91,6 +98,7 @@ What we fixed:
 - Changed components to show content immediately instead of loading states
 - Replaced jarring spinners with smooth skeleton loaders where needed
 - Added iOS-specific rendering optimizations
+- Improved authentication flow to allow viewing content without repeated login prompts
 
 Testing performed:
 - Tested on iPhone 17 Pro Max simulator (iOS 26.3)
@@ -98,12 +106,13 @@ Testing performed:
 - Cold start: No flickering ✓
 - Hot start: No flickering ✓
 - Navigation: Smooth transitions ✓
+- Video playback: Works without login prompts ✓
 
 Build Information:
 - Version: 1.0
 - Build: 3 (new build with fixes)
 
-The app now launches smoothly without any flickering effects. We're confident this resolves the issue completely.
+The app now launches smoothly without any flickering effects, and users can browse and watch videos seamlessly. We're confident this resolves the issue completely.
 
 Thank you for your time and feedback.
 ```
@@ -132,6 +141,7 @@ In **What's New in This Version** field:
 ```
 Bug Fixes:
 • Fixed content flickering issue on app launch
+• Fixed login prompts when viewing videos
 • Improved loading states for smoother experience
 • Enhanced performance and stability
 ```
