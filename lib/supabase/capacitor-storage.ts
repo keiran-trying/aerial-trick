@@ -1,68 +1,72 @@
 import { Preferences } from '@capacitor/preferences'
 import { Capacitor } from '@capacitor/core'
+import type { SupportedStorage } from '@supabase/ssr'
 
 /**
  * Custom storage adapter for Supabase that uses Capacitor Preferences
- * This ensures auth tokens persist properly in mobile apps
+ * IMPORTANT: For iOS simulator, we use SYNCHRONOUS localStorage for reliability
+ * Async storage causes session save/retrieve race conditions
  */
-export const capacitorStorage = {
-  getItem: async (key: string): Promise<string | null> => {
-    try {
-      if (!Capacitor.isNativePlatform()) {
-        // Use localStorage for web
-        return localStorage.getItem(key)
-      }
-      // Use Capacitor Preferences for mobile
-      const { value } = await Preferences.get({ key })
-      return value
-    } catch (error) {
-      console.error('Error getting item from storage:', key, error)
-      // Fallback to localStorage if Capacitor fails
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return localStorage.getItem(key)
-      }
-      return null
-    }
-  },
-  setItem: async (key: string, value: string): Promise<void> => {
-    try {
-      if (!Capacitor.isNativePlatform()) {
-        // Use localStorage for web
-        localStorage.setItem(key, value)
-        return
-      }
-      // Use Capacitor Preferences for mobile
-      await Preferences.set({ key, value })
-      // Also save to localStorage as backup
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem(key, value)
-      }
-    } catch (error) {
-      console.error('Error setting item in storage:', key, error)
-      // Fallback to localStorage if Capacitor fails
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem(key, value)
+export const capacitorStorage: SupportedStorage = {
+  getItem: (key: string) => {
+    console.log('[Storage] getItem called for:', key)
+    
+    // Use SYNCHRONOUS localStorage for iOS simulator reliability
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const value = localStorage.getItem(key)
+        console.log('[Storage] Retrieved from localStorage:', key, value ? '✓ Found' : '✗ Not found')
+        return value
+      } catch (error) {
+        console.error('[Storage] Error getting from localStorage:', key, error)
+        return null
       }
     }
+    
+    console.log('[Storage] localStorage not available')
+    return null
   },
-  removeItem: async (key: string): Promise<void> => {
-    try {
-      if (!Capacitor.isNativePlatform()) {
-        // Use localStorage for web
-        localStorage.removeItem(key)
-        return
+  
+  setItem: (key: string, value: string) => {
+    console.log('[Storage] setItem called for:', key, 'value length:', value.length)
+    
+    // Use SYNCHRONOUS localStorage for iOS simulator reliability
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem(key, value)
+        console.log('[Storage] ✓ Saved to localStorage:', key)
+        
+        // Also save to Capacitor Preferences asynchronously (don't await)
+        if (Capacitor.isNativePlatform()) {
+          Preferences.set({ key, value })
+            .then(() => console.log('[Storage] ✓ Also saved to Capacitor Preferences:', key))
+            .catch((error) => console.error('[Storage] ✗ Capacitor save failed:', key, error))
+        }
+      } catch (error) {
+        console.error('[Storage] ✗ Error saving to localStorage:', key, error)
       }
-      // Use Capacitor Preferences for mobile
-      await Preferences.remove({ key })
-      // Also remove from localStorage
-      if (typeof window !== 'undefined' && window.localStorage) {
+    } else {
+      console.error('[Storage] ✗ localStorage not available!')
+    }
+  },
+  
+  removeItem: (key: string) => {
+    console.log('[Storage] removeItem called for:', key)
+    
+    // Use SYNCHRONOUS localStorage for iOS simulator reliability
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
         localStorage.removeItem(key)
-      }
-    } catch (error) {
-      console.error('Error removing item from storage:', key, error)
-      // Fallback to localStorage if Capacitor fails
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.removeItem(key)
+        console.log('[Storage] ✓ Removed from localStorage:', key)
+        
+        // Also remove from Capacitor Preferences asynchronously
+        if (Capacitor.isNativePlatform()) {
+          Preferences.remove({ key })
+            .then(() => console.log('[Storage] ✓ Also removed from Capacitor Preferences:', key))
+            .catch((error) => console.error('[Storage] ✗ Capacitor remove failed:', key, error))
+        }
+      } catch (error) {
+        console.error('[Storage] ✗ Error removing from localStorage:', key, error)
       }
     }
   },

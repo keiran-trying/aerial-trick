@@ -30,6 +30,12 @@ body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
+  /* Prevent flickering on iOS */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Ensure smooth initial render */
+  opacity: 1;
+  transition: none;
 }
 
 /* Custom animations */

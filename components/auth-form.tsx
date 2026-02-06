@@ -51,6 +51,7 @@ export function AuthForm() {
           router.push('/')
         }
       } else {
+        console.log('[Auth] Starting login process...')
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -58,17 +59,32 @@ export function AuthForm() {
 
         if (signInError) throw signInError
         
-        // Wait a moment for session to be saved to storage (especially important for mobile)
-        await new Promise(resolve => setTimeout(resolve, 500))
+        console.log('[Auth] Login successful, user:', signInData.user?.email)
+        console.log('[Auth] Session received:', !!signInData.session)
         
-        // Verify session was saved
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) {
-          console.warn('Session not found after login, retrying...')
-          await new Promise(resolve => setTimeout(resolve, 500))
+        if (!signInData.session) {
+          console.error('[Auth] ✗ No session in signIn response!')
+          setError('Login failed: No session received. Please try again.')
+          setLoading(false)
+          return
         }
         
-        router.push('/')
+        console.log('[Auth] ✓ Session exists, checking if saved to storage...')
+        
+        // Wait a moment for Supabase to save to storage (even though it's synchronous, give it a tick)
+        await new Promise(resolve => setTimeout(resolve, 200))
+        
+        // Quick check - if getSession works, we're good
+        const { data: { session: verifySession } } = await supabase.auth.getSession()
+        if (verifySession) {
+          console.log('[Auth] ✓ Session verified in storage, redirecting...')
+          window.location.href = '/'
+        } else {
+          console.warn('[Auth] ⚠️ getSession returned null, but we have session from signIn')
+          console.log('[Auth] Redirecting anyway - session should be in memory...')
+          // Redirect anyway - the session exists and should work
+          window.location.href = '/'
+        }
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred')

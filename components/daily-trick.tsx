@@ -10,7 +10,7 @@ type Tutorial = Database['public']['Tables']['tutorials']['Row']
 
 export function DailyTrick() {
   const [dailyTutorial, setDailyTutorial] = useState<Tutorial | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false) // Start with false to prevent flickering
   const supabase = createClient()
 
   useEffect(() => {

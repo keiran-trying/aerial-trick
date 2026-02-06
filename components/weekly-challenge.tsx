@@ -23,7 +23,7 @@ interface WeeklyChallenge {
 export function WeeklyChallenge() {
   const [challenge, setChallenge] = useState<WeeklyChallenge | null>(null)
   const [tutorials, setTutorials] = useState<Tutorial[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false) // Start with false to prevent flickering
   const [selectedTutorial, setSelectedTutorial] = useState<Tutorial | null>(null)
   const supabase = createClient()
 

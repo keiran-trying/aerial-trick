@@ -23,7 +23,7 @@ export function TutorialTabs() {
   const [activeTab, setActiveTab] = useState<DifficultyLevel | 'all'>('easy')
   const [tutorials, setTutorials] = useState<Tutorial[]>([])
   const [favorites, setFavorites] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false) // Start with false to prevent flickering
   const supabase = createClient()
 
   // Load user's preferred skill level from onboarding

@@ -12,10 +12,13 @@ const nextConfig: NextConfig = {
   //   - Auth will work via Capacitor storage (no middleware needed)
   //   - Run: npm run build && npx cap sync
   //
-  // output: 'export',  // COMMENTED OUT FOR WEB DEPLOYMENT (Vercel/production)
+  output: 'export',  // ENABLED FOR MOBILE BUILD (iOS App Store submission)
   
-  // Exclude backup folders from build
+  // Exclude backup folders and allow dynamic routes
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  
+  // Skip dynamic routes for static export - they'll work client-side in Capacitor
+  trailingSlash: true,
   
   // Skip ESLint during builds for now
   eslint: {

@@ -11,13 +11,25 @@ import { TutorialTabs } from '@/components/tutorial-tabs'
 
 export default function HomePage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
     async function checkOnboarding() {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        console.log('[HomePage] Checking user authentication...')
+        
+        // Retry getting user session up to 5 times (helps with iOS simulator)
+        let user = null
+        for (let i = 0; i < 5; i++) {
+          const { data: { user: currentUser } } = await supabase.auth.getUser()
+          if (currentUser) {
+            user = currentUser
+            console.log('[HomePage] User found after', i + 1, 'attempts:', user.email)
+            break
+          }
+          console.log('[HomePage] User not found, attempt', i + 1)
+          await new Promise(resolve => setTimeout(resolve, 300))
+        }
 
         // If user is logged in, check if they've completed onboarding
         if (user) {
@@ -29,30 +41,22 @@ export default function HomePage() {
 
           // Redirect to onboarding if not completed
           if (!preferences || !preferences.onboarding_completed_at) {
+            console.log('[HomePage] Redirecting to onboarding...')
             router.push('/onboarding')
             return
           }
+        } else {
+          console.log('[HomePage] No user found, showing page without auth')
         }
       } catch (error) {
-        console.error('Error checking onboarding:', error)
-      } finally {
-        setLoading(false)
+        console.error('[HomePage] Error checking onboarding:', error)
       }
     }
 
     checkOnboarding()
   }, [router, supabase])
 
-  if (loading) {
-    return (
-      <LayoutWrapper title="Aerial Tricks" showSettings={true}>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-        </div>
-      </LayoutWrapper>
-    )
-  }
-
+  // Show content immediately - no loading spinner to prevent flickering
   return (
     <LayoutWrapper title="Aerial Trick" showSettings={true}>
       <div className="space-y-6 p-4">
