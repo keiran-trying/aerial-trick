@@ -20,33 +20,21 @@ export function TutorialDetailWrapper({ tutorialId }: TutorialDetailWrapperProps
   const supabase = createClient()
 
   useEffect(() => {
-    async function checkAuthAndFetchTutorial() {
+    async function fetchTutorial() {
       try {
-        console.log('[Tutorial] Checking authentication for tutorial:', tutorialId)
+        console.log('[Tutorial] Loading tutorial:', tutorialId)
         
-        // Retry getting user session up to 5 times (helps with iOS simulator)
-        let user = null
-        for (let i = 0; i < 5; i++) {
-          const { data: { user: currentUser } } = await supabase.auth.getUser()
-          if (currentUser) {
-            user = currentUser
-            console.log('[Tutorial] User authenticated after', i + 1, 'attempts:', user.email)
-            break
-          }
-          console.log('[Tutorial] User not found, attempt', i + 1)
-          await new Promise(resolve => setTimeout(resolve, 300))
-        }
-        
-        if (!user) {
-          // Redirect to login if not authenticated after retries
-          console.log('[Tutorial] No user found after retries, redirecting to login')
-          router.push('/auth/login')
-          return
+        // Check if user is authenticated (but don't require it to view)
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          console.log('[Tutorial] User authenticated:', user.email)
+          setIsAuthenticated(true)
+        } else {
+          console.log('[Tutorial] No user session, but allowing view')
+          setIsAuthenticated(false)
         }
 
-        setIsAuthenticated(true)
-
-        // Fetch the tutorial
+        // Fetch the tutorial (allow viewing even without auth)
         const { data: tutorialData, error } = await supabase
           .from('tutorials')
           .select('*')
@@ -62,14 +50,15 @@ export function TutorialDetailWrapper({ tutorialId }: TutorialDetailWrapperProps
         console.log('[Tutorial] Tutorial loaded successfully:', tutorialData.title)
         setTutorial(tutorialData)
       } catch (error) {
-        console.error('[Tutorial] Error:', error)
-        router.push('/auth/login')
+        console.error('[Tutorial] Error loading tutorial:', error)
+        // Don't redirect to login, just go back to homepage
+        router.push('/')
       } finally {
         setLoading(false)
       }
     }
 
-    checkAuthAndFetchTutorial()
+    fetchTutorial()
   }, [tutorialId, router, supabase])
 
   // Show skeleton loader instead of spinner to prevent flickering
@@ -91,7 +80,7 @@ export function TutorialDetailWrapper({ tutorialId }: TutorialDetailWrapperProps
     )
   }
 
-  if (!isAuthenticated || !tutorial) {
+  if (!tutorial) {
     return null
   }
 
