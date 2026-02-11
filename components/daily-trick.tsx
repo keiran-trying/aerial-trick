@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getTodayDate } from '@/lib/daily-trick-manager'
 import { Sparkles } from 'lucide-react'
 import { TutorialCard } from './tutorial-card'
 import type { Database } from '@/lib/types/database.types'
@@ -10,78 +11,61 @@ type Tutorial = Database['public']['Tables']['tutorials']['Row']
 
 export function DailyTrick() {
   const [dailyTutorial, setDailyTutorial] = useState<Tutorial | null>(null)
-  const [loading, setLoading] = useState(false) // Start with false to prevent flickering
+  const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
     async function fetchDailyTrick() {
       try {
-        const today = new Date().toISOString().split('T')[0]
+        const today = getTodayDate()
         
-        // First try to call the auto-create function if it exists
-        try {
-          const { data: autoCreated } = await supabase.rpc('get_or_create_daily_trick')
-          if (autoCreated && autoCreated.length > 0) {
-            // Fetch the tutorial
-            const { data: tutorial } = await supabase
-              .from('tutorials')
-              .select('*')
-              .eq('id', autoCreated[0].tutorial_id)
-              .single()
-            
-            if (tutorial) {
-              // Filter out if it's in a future challenge
-              const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
-              const filtered = await filterFutureTutorials([tutorial], supabase)
-              
-              if (filtered.length > 0) {
-                setDailyTutorial(filtered[0])
-              } else {
-                setDailyTutorial(null)
-              }
-              setLoading(false)
-              return
-            }
-          }
-        } catch (rpcError) {
-          // Function might not exist, fall back to regular query
-          console.log('Auto-create function not available, using fallback')
-        }
-        
-        // Fallback: Check if daily trick exists for today
-        const { data: dailyTrickData } = await supabase
+        // Check if daily trick exists for today
+        const { data: dailyTrickData, error: trickError } = await supabase
           .from('daily_trick')
           .select('tutorial_id')
           .eq('date', today)
-          .single()
+          .maybeSingle()
 
-        if (dailyTrickData) {
-          // Fetch the tutorial
-          const { data: tutorial } = await supabase
-            .from('tutorials')
-            .select('*')
-            .eq('id', dailyTrickData.tutorial_id)
-            .single()
+        if (trickError) {
+          console.error('[DailyTrick] Error fetching daily trick:', trickError)
+          setDailyTutorial(null)
+          return
+        }
+
+        if (!dailyTrickData) {
+          console.log('[DailyTrick] No daily trick found for today')
+          setDailyTutorial(null)
+          return
+        }
+
+        // Fetch the tutorial
+        const { data: tutorial, error: tutorialError } = await supabase
+          .from('tutorials')
+          .select('*')
+          .eq('id', dailyTrickData.tutorial_id)
+          .single()
+        
+        if (tutorialError) {
+          console.error('[DailyTrick] Error fetching tutorial:', tutorialError)
+          setDailyTutorial(null)
+          return
+        }
+        
+        if (tutorial) {
+          // Filter out if it's in a future challenge
+          const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
+          const filtered = await filterFutureTutorials([tutorial], supabase)
           
-          if (tutorial) {
-            // Filter out if it's in a future challenge
-            const { filterFutureTutorials } = await import('@/lib/filter-future-tutorials')
-            const filtered = await filterFutureTutorials([tutorial], supabase)
-            
-            if (filtered.length > 0) {
-              setDailyTutorial(filtered[0])
-            } else {
-              setDailyTutorial(null)
-            }
+          if (filtered.length > 0) {
+            setDailyTutorial(filtered[0])
           } else {
             setDailyTutorial(null)
           }
         } else {
-          // No daily trick set yet
           setDailyTutorial(null)
         }
       } catch (error) {
-        console.error('Error fetching daily trick:', error)
+        console.error('[DailyTrick] Unexpected error:', error)
       } finally {
         setLoading(false)
       }

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LayoutWrapper } from '@/components/layout-wrapper'
 import { AdminDashboardSimple } from '@/components/admin-dashboard-simple'
-import { isAdmin } from '@/lib/utils/admin'
+import { isAdminClient } from '@/lib/utils/admin-client'
 import { createClient } from '@/lib/supabase/client'
 
 export default function AdminPage() {
@@ -26,7 +26,7 @@ export default function AdminPage() {
         }
         
         // Check if user is admin
-        const userIsAdmin = await isAdmin()
+        const userIsAdmin = await isAdminClient()
         
         if (!userIsAdmin) {
           // Not an admin - redirect to home

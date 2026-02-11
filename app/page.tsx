@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { ensureDailyTrickExists } from '@/lib/daily-trick-manager'
 import { LayoutWrapper } from '@/components/layout-wrapper'
 import { DailyTrick } from '@/components/daily-trick'
 import { WeeklyChallenge } from '@/components/weekly-challenge'
@@ -53,7 +54,16 @@ export default function HomePage() {
       }
     }
 
-    checkOnboarding()
+    async function initializePage() {
+      // Check onboarding first
+      await checkOnboarding()
+      
+      // Ensure today's daily trick exists (client-side check)
+      // This replaces the need for server-side cron jobs
+      ensureDailyTrickExists()
+    }
+
+    initializePage()
   }, [router, supabase])
 
   // Show content immediately - no loading spinner to prevent flickering

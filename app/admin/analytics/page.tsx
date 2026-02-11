@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LayoutWrapper } from '@/components/layout-wrapper'
 import { AdminAnalytics } from '@/components/admin-analytics'
-import { isAdmin } from '@/lib/utils/admin'
+import { isAdminClient } from '@/lib/utils/admin-client'
 import { createClient } from '@/lib/supabase/client'
 
 export default function AdminAnalyticsPage() {
@@ -23,7 +23,7 @@ export default function AdminAnalyticsPage() {
           return
         }
         
-        const userIsAdmin = await isAdmin()
+        const userIsAdmin = await isAdminClient()
         
         if (!userIsAdmin) {
           router.push('/')
