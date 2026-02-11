@@ -8,10 +8,6 @@ const nextConfig: NextConfig = {
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
   trailingSlash: true,
   
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  
   typescript: {
     ignoreBuildErrors: true,
   },
