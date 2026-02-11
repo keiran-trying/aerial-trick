@@ -3,7 +3,7 @@ api_backup/
 backup/
 collection_backup/
 tutorial_backup/
-out/
+# NOTE: Do NOT ignore out/ - that's where Next.js static export puts build output for Vercel deployment
 
 # Documentation
 *.md
